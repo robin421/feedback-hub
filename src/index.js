@@ -675,7 +675,8 @@ ${formattedExtra}
 }
 
 /**
- * 前端 HTML 页面模板渲染（移动端 + 桌面端自适应）
+ * 前端 HTML 页面模板渲染（移动端 + 桌面端自适应 - 2026 Ultimate Edition）
+ * 彻底消除移动端多余 Header，引入 Apple 原生拖拽手柄、分类精巧微图标、输入呼吸环与字数进度条、数字工单凭据 (Ticket Receipt Pass)
  */
 function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
   return `<!DOCTYPE html>
@@ -694,10 +695,17 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
             brand: {
               50: '#eff6ff',
               100: '#dbeafe',
+              200: '#bfdbfe',
               500: '#3b82f6',
               600: '#2563eb',
               700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
             }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', '"PingFang SC"', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
           }
         }
       }
@@ -706,146 +714,197 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
   <style>
     body {
       -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     textarea, input {
       font-size: 16px !important;
     }
+    .ticket-notch-left {
+      position: absolute;
+      left: -14px;
+      top: -12px;
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background-color: rgb(248 250 252);
+    }
+    @media (prefers-color-scheme: dark) {
+      .ticket-notch-left {
+        background-color: #0b0f19;
+      }
+    }
+    .ticket-notch-right {
+      position: absolute;
+      right: -14px;
+      top: -12px;
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background-color: rgb(248 250 252);
+    }
+    @media (prefers-color-scheme: dark) {
+      .ticket-notch-right {
+        background-color: #0b0f19;
+      }
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col justify-between antialiased transition-colors duration-200">
+<body class="bg-slate-50 text-slate-800 dark:bg-[#0b0f19] dark:text-slate-100 min-h-screen flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white transition-colors duration-200">
 
-  <!-- 顶部导航条（桌面端与移动端兼顾） -->
-  <header class="w-full border-b border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md sticky top-0 z-10 px-4 sm:px-8 py-3">
-    <div class="max-w-5xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-          F
-        </div>
-        <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white">Feedback Hub</span>
-        <span id="badge-pkg" class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-100 dark:border-blue-900">
-          ${pkg}
-        </span>
-      </div>
-      
-      <!-- 右侧：简洁状态提示（绝不向普通终端用户暴露后台表格） -->
-      <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          <span>技术支持在线</span>
-        </span>
-      </div>
-    </div>
-  </header>
+  <!-- 移动端 Webview 沉浸式顶部手柄 (Sheet Handle: 告别生硬 Header 假顶栏) -->
+  <div class="sm:hidden flex justify-center pt-2.5 pb-1">
+    <div class="w-10 h-1 rounded-full bg-slate-300/80 dark:bg-slate-700/80"></div>
+  </div>
 
-  <!-- 主容器：桌面端双栏 Split，移动端流式单列 -->
-  <main class="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 flex-1 flex flex-col justify-center">
+  <!-- 主容器：桌面端双栏自适应，移动端流式单列 -->
+  <main class="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-8 lg:py-10 flex-1 flex flex-col justify-center">
     
     <!-- 反馈主卡片 -->
-    <div id="form-card" class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 sm:p-8 lg:p-10 transition-all">
+    <div id="form-card" class="bg-white/95 dark:bg-[#111827]/90 rounded-3xl shadow-[0_16px_50px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl p-5 sm:p-8 lg:p-10 transition-all">
       
-      <div class="lg:grid lg:grid-cols-12 lg:gap-10">
+      <div class="lg:grid lg:grid-cols-12 lg:gap-10 items-stretch">
         
-        <!-- 左侧专栏 (桌面端占 5 列，移动端置顶) -->
-        <div class="lg:col-span-5 flex flex-col justify-between mb-8 lg:mb-0 lg:border-r lg:border-slate-100 dark:lg:border-slate-700/60 lg:pr-8">
+        <!-- 左侧专栏 (桌面端 5 列，移动端置顶，无需独立全局 Header) -->
+        <div class="lg:col-span-5 flex flex-col justify-between mb-7 lg:mb-0 lg:border-r lg:border-slate-100 dark:lg:border-slate-800/80 lg:pr-8">
           <div>
-            <div class="inline-flex p-3 rounded-2xl bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 mb-4 shadow-sm">
-              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
+            <!-- 产品与状态一体化药丸徽章 -->
+            <div class="flex items-center gap-2 mb-4 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-300 border border-brand-200/70 dark:border-brand-900/60 shadow-2xs">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span id="badge-pkg">${pkg}</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/60 dark:border-emerald-900/40">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span id="label-live-status">支持团队在线</span>
+              </span>
             </div>
             
-            <h1 id="app-title" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
+            <h1 id="app-title" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2.5 leading-tight">
               <!-- 动态标题 -->
             </h1>
-            <p id="app-desc" class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+            <p id="app-desc" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
               <!-- 动态副标题 -->
             </p>
 
-            <!-- 去客服化预期管理卡片 -->
-            <div class="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40 text-amber-900 dark:text-amber-200/90 text-xs leading-relaxed flex items-start gap-2.5 mb-6">
-              <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span id="management-notice">
+            <!-- 去客服化预期管理卡片 (Stripe 式柔和微光) -->
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/25 border border-amber-200/60 dark:border-amber-900/40 text-amber-900 dark:text-amber-200/90 text-xs leading-relaxed flex items-start gap-2.5 mb-6">
+              <div class="p-1 rounded-lg bg-amber-100/80 dark:bg-amber-900/50 text-amber-600 dark:text-amber-300 shrink-0 mt-0.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span id="management-notice" class="opacity-90">
                 <!-- 动态文案 -->
               </span>
             </div>
           </div>
 
           <!-- 桌面端快捷键与说明 -->
-          <div class="hidden lg:block pt-6 border-t border-slate-100 dark:border-slate-700/60 text-xs text-slate-400 dark:text-slate-500 space-y-2">
+          <div class="hidden lg:block pt-5 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-400 dark:text-slate-500 space-y-2">
             <div class="flex items-center gap-2">
-              <kbd class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded font-mono text-[11px] text-slate-600 dark:text-slate-300">⌘ + Enter</kbd>
-              <span>或 Ctrl + Enter 快捷提交工单</span>
+              <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-mono text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-2xs">⌘ + Enter</kbd>
+              <span>快捷提交工单</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>数据直连在线表格，实时归档</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>数据直连多维表格矩阵，实时归档</span>
             </div>
           </div>
 
         </div>
 
-        <!-- 右侧表单专区 (桌面端占 7 列) -->
-        <div class="lg:col-span-7">
+        <!-- 右侧表单专区 (桌面端 7 列) -->
+        <div class="lg:col-span-7 flex flex-col justify-between">
           <form id="feedback-form" onsubmit="return false;" novalidate>
             
+            <!-- 防垃圾蜜罐字段 (保持安全无损) -->
             <input type="text" name="website_url" id="website_url" value="" autocomplete="off" style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;" tabindex="-1" aria-hidden="true" />
 
-            <!-- 1. 问题分类（胶囊单选组） -->
+            <!-- 1. 问题分类（图标卡片网格组） -->
             <div class="mb-5">
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5" id="label-category">
-                问题分类 <span class="text-rose-500">*</span>
-              </label>
-              <div id="category-group" class="grid grid-cols-2 gap-2.5">
-                <!-- 动态单选按钮 -->
+              <div class="flex items-center justify-between mb-2">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400" id="label-category">
+                  问题分类 <span class="text-rose-500">*</span>
+                </label>
+                <span class="text-[11px] text-slate-400 dark:text-slate-500" id="category-hint">请选择最符合的一项</span>
               </div>
-              <p id="category-error" class="hidden text-xs text-rose-500 mt-1.5"></p>
+              <div id="category-group" class="grid grid-cols-2 gap-2.5">
+                <!-- 动态生成带有精美微图标的分类按钮 -->
+              </div>
+              <p id="category-error" class="hidden text-xs text-rose-500 mt-1.5 flex items-center gap-1"></p>
             </div>
 
-            <!-- 2. 详细描述 (textarea, 10-1000字) -->
+            <!-- 2. 详细描述 (含快捷清空与动态字数进度条) -->
             <div class="mb-5">
               <div class="flex justify-between items-center mb-1.5">
                 <label for="content" class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400" id="label-content">
                   详细描述 <span class="text-rose-500">*</span>
                 </label>
-                <span id="char-count" class="text-xs font-mono text-slate-400 dark:text-slate-500">0 / 1000</span>
+                <div class="flex items-center gap-2">
+                  <button type="button" id="btn-clear-content" onclick="clearContent()" class="hidden text-[11px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors flex items-center gap-0.5 py-0.5 px-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span id="label-clear">清空</span>
+                  </button>
+                  <span id="char-count" class="text-xs font-mono text-slate-400 dark:text-slate-500 font-medium">0 / 1000</span>
+                </div>
               </div>
-              <textarea
-                id="content"
-                name="content"
-                rows="6"
-                maxlength="1000"
-                class="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all resize-none leading-relaxed text-sm"
-                placeholder=""
-              ></textarea>
-              <div class="flex justify-between items-center mt-1.5">
+
+              <!-- 输入框容器 + 底部极细进度条 -->
+              <div class="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-900/50 focus-within:ring-2 focus-within:ring-brand-500/25 focus-within:border-brand-500 transition-all shadow-2xs">
+                <textarea
+                  id="content"
+                  name="content"
+                  rows="5"
+                  maxlength="1000"
+                  class="w-full px-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none resize-none leading-relaxed text-sm block"
+                  placeholder=""
+                ></textarea>
+                <!-- 动态字数进度微线条 -->
+                <div class="h-1 w-full bg-slate-100 dark:bg-slate-800/80 overflow-hidden">
+                  <div id="char-progress" class="h-full bg-slate-300 dark:bg-slate-600 transition-all duration-150 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center mt-1.5 px-0.5">
                 <p id="content-hint" class="text-xs text-slate-400 dark:text-slate-500"></p>
                 <p id="content-error" class="hidden text-xs text-rose-500"></p>
               </div>
             </div>
 
-            <!-- 3. 联系邮箱 (选填) -->
+            <!-- 3. 联系邮箱 (选填，带内联图标) -->
             <div class="mb-6">
               <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5" id="label-email">
                 联系邮箱 (选填)
               </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all text-sm"
-                placeholder=""
-              />
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/25 focus:border-brand-500 transition-all text-sm shadow-2xs"
+                  placeholder=""
+                />
+              </div>
             </div>
 
-            <!-- 提交按钮 -->
+            <!-- 提交主按钮 (Linear 级微质感渐变) -->
             <button
               type="button"
               id="btn-submit"
               onclick="submitFeedback()"
-              class="w-full py-3.5 px-6 rounded-2xl font-semibold text-sm text-white bg-brand-600 hover:bg-brand-700 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 transition-all shadow-sm flex items-center justify-center gap-2"
+              class="w-full py-3.5 px-6 rounded-2xl font-semibold text-sm text-white bg-gradient-to-r from-blue-600 via-brand-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 transition-all shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 cursor-pointer"
             >
               <svg id="submit-spinner" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -861,68 +920,124 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
 
     </div>
 
-    <!-- 提交成功状态卡片：仅向普通用户回显其自身刚提交的工单凭据与内容，绝不泄露管理表格 -->
-    <div id="success-card" class="hidden bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 sm:p-10 text-left transition-all animate-fade-in max-w-xl mx-auto w-full">
-      <div class="text-center mb-6">
-        <div class="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-3.5 shadow-sm">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-          </svg>
-        </div>
-        <h2 id="success-title" class="text-xl font-bold text-slate-900 dark:text-white mb-1.5">工单已成功提交</h2>
-        <p id="success-desc" class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-md mx-auto">我们已完整记录您的工单内容。研发团队将进行评估分析，如需补充信息将通过邮箱联系您。</p>
-      </div>
-
-      <!-- 用户工单凭据回显区 -->
-      <div class="p-4 sm:p-5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-2.5 mb-6">
-        <div class="flex justify-between items-center border-b border-slate-200/60 dark:border-slate-800/80 pb-2">
-          <span class="text-slate-400 dark:text-slate-500">工单编号:</span>
-          <span id="ticket-id-display" class="font-mono font-bold text-brand-600 dark:text-brand-400">T-Pending</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-slate-400 dark:text-slate-500">所属产品:</span>
-          <span id="ticket-pkg-display" class="font-medium text-slate-800 dark:text-slate-200">${pkg}</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-slate-400 dark:text-slate-500">问题分类:</span>
-          <span id="ticket-cat-display" class="font-medium text-slate-800 dark:text-slate-200"></span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-slate-400 dark:text-slate-500">联系邮箱:</span>
-          <span id="ticket-email-display" class="font-mono text-slate-800 dark:text-slate-200">未提供</span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-slate-400 dark:text-slate-500">当前状态:</span>
-          <span class="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>已入库排期评估
+    <!-- 提交成功状态卡片：数字工单凭据 (Ticket Receipt Pass) -->
+    <div id="success-card" class="hidden bg-white/95 dark:bg-[#111827]/90 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_25px_70px_-20px_rgba(0,0,0,0.8)] border border-slate-200/80 dark:border-slate-800/80 overflow-hidden text-left transition-all max-w-lg mx-auto w-full">
+      
+      <!-- 凭据头部 (深蓝沉浸质感) -->
+      <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-7 relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-brand-500/10 blur-2xl pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 flex items-center justify-center shadow-inner">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 block">Electronic Pass</span>
+              <h2 id="success-title" class="text-base font-bold text-white tracking-tight">工单已归档入库</h2>
+            </div>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span id="ticket-status-badge">已入排期队列</span>
           </span>
         </div>
-        <!-- 提交内容回显 -->
-        <div class="pt-2.5 border-t border-slate-200/60 dark:border-slate-800/80">
-          <span class="block text-slate-400 dark:text-slate-500 mb-1.5 font-semibold">您提交的详细内容:</span>
-          <div id="ticket-content-display" class="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto font-sans text-xs"></div>
-        </div>
+        <p id="success-desc" class="text-xs text-slate-300/80 leading-relaxed">
+          您的反馈已自动直连多维表格看板并生成唯一存证凭据。
+        </p>
       </div>
 
-      <div class="flex gap-3">
-        <button
-          type="button"
-          onclick="resetForm()"
-          class="w-full py-3.5 px-4 rounded-xl text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 active:scale-[0.99] transition shadow-sm text-center"
-          id="btn-back"
-        >
-          返回 / 再次提交反馈
-        </button>
+      <!-- 中间撕裂虚线与票据圆槽 (Ticket Perforation & Notches) -->
+      <div class="relative py-2 bg-slate-50/50 dark:bg-[#0d131f]/50">
+        <div class="ticket-notch-left"></div>
+        <div class="ticket-notch-right"></div>
+        <div class="border-t border-dashed border-slate-200 dark:border-slate-800 mx-5"></div>
       </div>
+
+      <!-- 凭据核心数据区 -->
+      <div class="p-5 sm:p-6 space-y-4">
+        
+        <!-- 工单编号与一键复制 -->
+        <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200/60 dark:border-slate-800">
+          <div>
+            <span class="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">Ticket ID</span>
+            <span id="ticket-id-display" class="font-mono text-sm sm:text-base font-extrabold text-brand-600 dark:text-brand-400 tracking-wider">T-Pending</span>
+          </div>
+          <button
+            type="button"
+            id="btn-copy-id"
+            onclick="copyTicketId()"
+            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition cursor-pointer"
+          >
+            <svg id="copy-icon" class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span id="copy-text">复制单号</span>
+          </button>
+        </div>
+
+        <!-- 四项元数据网格 -->
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
+            <span class="text-slate-400 text-[11px] block">所属应用</span>
+            <span id="ticket-pkg-display" class="font-semibold text-slate-800 dark:text-slate-200 truncate block mt-0.5">${pkg}</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
+            <span class="text-slate-400 text-[11px] block">问题类别</span>
+            <span id="ticket-cat-display" class="font-semibold text-slate-800 dark:text-slate-200 truncate block mt-0.5">程序报错</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
+            <span class="text-slate-400 text-[11px] block">联系方式</span>
+            <span id="ticket-email-display" class="font-mono text-slate-700 dark:text-slate-300 truncate block mt-0.5">未提供</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
+            <span class="text-slate-400 text-[11px] block">提交时间</span>
+            <span id="ticket-time-display" class="font-mono text-slate-700 dark:text-slate-300 truncate block mt-0.5">刚刚</span>
+          </div>
+        </div>
+
+        <!-- 提交内容快照折叠框 -->
+        <div class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-semibold text-slate-400">已存档描述快照:</span>
+            <span class="text-[10px] text-slate-400 font-mono">1:1 Raw</span>
+          </div>
+          <div id="ticket-content-display" class="p-2.5 bg-white dark:bg-slate-950/60 rounded-xl border border-slate-200/50 dark:border-slate-800 text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed max-h-32 overflow-y-auto font-sans text-xs"></div>
+        </div>
+
+        <!-- 操作按钮组 -->
+        <div class="pt-2 flex flex-col sm:flex-row gap-2.5">
+          <button
+            type="button"
+            onclick="copySummary()"
+            id="btn-copy-summary"
+            class="w-full sm:w-1/2 py-3 px-4 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-[0.99] transition text-center cursor-pointer"
+          >
+            复制凭证摘要
+          </button>
+          <button
+            type="button"
+            onclick="resetForm()"
+            id="btn-back"
+            class="w-full sm:w-1/2 py-3 px-4 rounded-xl text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 active:scale-[0.99] transition shadow-sm text-center cursor-pointer"
+          >
+            返回 / 再次提交
+          </button>
+        </div>
+
+      </div>
+
     </div>
 
-    <!-- 底部环境参数小字展示 -->
-    <footer class="mt-6 text-center">
-      <div id="env-footer" class="text-xs font-mono text-slate-400 dark:text-slate-500 leading-relaxed select-none">
+    <!-- 底部环境参数与微小管理入口 -->
+    <footer class="mt-6 text-center select-none">
+      <div id="env-footer" class="text-xs font-mono text-slate-400 dark:text-slate-500 leading-relaxed">
         <!-- 自动渲染环境参数 -->
       </div>
-      <div class="mt-2 text-[11px] text-slate-400/60 dark:text-slate-600">
-        Feedback Hub · 独立产品支持中心 · <a href="/sheet" class="hover:underline">管理视图</a>
+      <div class="mt-1.5 text-[11px] text-slate-400/70 dark:text-slate-600">
+        Feedback Hub · 独立产品支持中心 · <a href="/sheet" class="hover:underline hover:text-slate-600 dark:hover:text-slate-400 transition-colors">管理视图</a>
       </div>
     </footer>
 
@@ -932,7 +1047,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
     const APP_CONFIG = {
       "default": {
         name: { zh: "用户问题与建议反馈", en: "Feedback Center" },
-        desc: { zh: "感谢您的宝贵意见，我们专注于以代码改进体验，所有工单自动沉淀至团队在线表格", en: "Help us improve product experience. Tickets are synced directly to our online spreadsheet." },
+        desc: { zh: "感谢您的宝贵意见，我们专注于以代码改进体验，所有工单自动沉淀至团队在线表格", en: "Help us improve product experience. Tickets are synced directly to our engineering spreadsheet." },
         categories: {
           zh: ["程序报错/闪退", "功能不好用", "新功能建议", "其他问题"],
           en: ["Bug / Crash", "Usability", "Feature Request", "Other"]
@@ -959,50 +1074,81 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
     const I18N = {
       zh: {
         categoryLabel: "问题分类",
+        categoryHint: "请选择最符合的一项",
         contentLabel: "详细描述",
         contentPlaceholder: "请详细描述您遇到的问题现象、复现步骤或期望，帮助我们准确定位（10~1000字）...",
         contentHint: "至少输入 10 个字符",
+        clearText: "清空",
         emailLabel: "联系邮箱 (选填)",
         emailPlaceholder: "选填：仅在修复重大问题或需要补充信息时通知您",
         submitText: "提交反馈",
         submittingText: "提交中...",
         rateLimitText: "请稍候 {sec}s 后再提交",
-        managementNotice: "感谢反馈！作为独立开发团队，我们会将全部精力用于代码修复，每一条工单都会直接进入在线表格队列，通常不会进行人工一对一回复。",
-        successTitle: "反馈已送达在线表格",
-        successDesc: "您的意见已直接进入我们的迭代看板。感谢您对我们产品的关注与支持！",
-        btnBack: "再次提交反馈",
+        managementNotice: "感谢反馈！每一条工单都会直达开发排期队列。作为独立开发团队我们专注于代码改进，通常不会进行人工一对一回复，重大进展会通过邮箱通知。",
+        liveStatusText: "技术支持在线",
+        successTitle: "工单已归档入库",
+        successDesc: "您的反馈已自动直连多维表格看板并生成唯一存证凭据。",
+        btnBack: "返回 / 再次提交",
+        btnCopySummary: "复制凭证摘要",
+        copied: "已复制",
+        copyId: "复制单号",
+        summaryCopied: "凭证摘要已复制到剪贴板",
         selectCategoryError: "请选择一个问题分类",
-        contentLengthError: "内容长度需在 10 至 1000 字之间"
+        contentLengthError: "内容长度需在 10 至 1000 字之间",
+        anonymous: "匿名提交"
       },
       en: {
         categoryLabel: "Category",
+        categoryHint: "Select the most relevant",
         contentLabel: "Detailed Description",
         contentPlaceholder: "Please describe what happened, steps to reproduce, or suggestions (10-1000 chars)...",
         contentHint: "At least 10 characters required",
+        clearText: "Clear",
         emailLabel: "Contact Email (Optional)",
         emailPlaceholder: "Optional: Only for critical updates or clarifications",
         submitText: "Submit Ticket",
         submittingText: "Submitting...",
-        rateLimitText: "Please wait {sec}s before next submit",
-        managementNotice: "Thank you! As an indie team, our focus is on fixing bugs in code. Every ticket is logged into our spreadsheet, and we typically do not reply 1-on-1.",
-        successTitle: "Ticket Recorded in Spreadsheet!",
-        successDesc: "Your feedback has been routed directly to our engineering backlog. Thanks for helping us improve!",
+        rateLimitText: "Please wait {sec}s",
+        managementNotice: "Thank you! Every ticket is logged directly into our spreadsheet. We focus 100% on code improvements.",
+        liveStatusText: "Support Online",
+        successTitle: "Ticket Recorded",
+        successDesc: "Your feedback has been routed to our spreadsheet backlog with a permanent receipt.",
         btnBack: "Submit Another",
+        btnCopySummary: "Copy Summary",
+        copied: "Copied",
+        copyId: "Copy ID",
+        summaryCopied: "Receipt summary copied to clipboard",
         selectCategoryError: "Please choose a category",
-        contentLengthError: "Description must be between 10 and 1000 characters"
+        contentLengthError: "Description must be between 10 and 1000 characters",
+        anonymous: "Anonymous"
       }
     };
 
+    // 智能获取精美 Lucide 矢量图标
+    function getCategoryIconSvg(catName) {
+      const name = catName.toLowerCase();
+      if (name.includes("报错") || name.includes("闪退") || name.includes("bug") || name.includes("crash") || name.includes("失败") || name.includes("不准")) {
+        return '<svg class="w-4 h-4 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>';
+      } else if (name.includes("不好用") || name.includes("体验") || name.includes("优化") || name.includes("ui") || name.includes("usability") || name.includes("汇率")) {
+        return '<svg class="w-4 h-4 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>';
+      } else if (name.includes("新功能") || name.includes("建议") || name.includes("feature") || name.includes("request") || name.includes("库建议")) {
+        return '<svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>';
+      } else {
+        return '<svg class="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>';
+      }
+    }
+
     const queryParams = new URLSearchParams(window.location.search);
-    const clientPkg = queryParams.get("pkg") || "default";
-    const clientVer = queryParams.get("ver") || "1.0.0";
+    const clientPkg = queryParams.get("pkg") || "${pkg}";
+    const clientVer = queryParams.get("ver") || "${ver}";
     const clientOs = queryParams.get("os") || (navigator.userAgent.includes("Android") ? "Android" : navigator.userAgent.includes("iPhone") ? "iOS" : "Desktop Browser");
-    const paramLang = (queryParams.get("lang") || "").toLowerCase();
+    const paramLang = (queryParams.get("lang") || "${lang}").toLowerCase();
     const clientLang = (paramLang === "zh" || (!paramLang && (navigator.language || "").startsWith("zh"))) ? "zh" : "en";
     const clientExtra = queryParams.get("extra") || "";
 
     let selectedCategory = "";
     let rateLimitTimer = null;
+    let lastTicketPayload = null;
 
     document.addEventListener("DOMContentLoaded", () => {
       initUI();
@@ -1026,11 +1172,14 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       document.getElementById("app-title").textContent = config.name[clientLang] || config.name["en"];
       document.getElementById("app-desc").textContent = config.desc[clientLang] || config.desc["en"];
       document.getElementById("badge-pkg").textContent = clientPkg;
+      document.getElementById("label-live-status").textContent = t.liveStatusText;
 
       document.getElementById("label-category").innerHTML = t.categoryLabel + ' <span class="text-rose-500">*</span>';
+      document.getElementById("category-hint").textContent = t.categoryHint;
       document.getElementById("label-content").innerHTML = t.contentLabel + ' <span class="text-rose-500">*</span>';
       document.getElementById("content").placeholder = t.contentPlaceholder;
       document.getElementById("content-hint").textContent = t.contentHint;
+      document.getElementById("label-clear").textContent = t.clearText;
       document.getElementById("label-email").textContent = t.emailLabel;
       document.getElementById("email").placeholder = t.emailPlaceholder;
       document.getElementById("management-notice").textContent = t.managementNotice;
@@ -1038,6 +1187,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       document.getElementById("success-title").textContent = t.successTitle;
       document.getElementById("success-desc").textContent = t.successDesc;
       document.getElementById("btn-back").textContent = t.btnBack;
+      document.getElementById("btn-copy-summary").textContent = t.btnCopySummary;
 
       const categories = config.categories[clientLang] || config.categories["en"];
       const categoryContainer = document.getElementById("category-group");
@@ -1046,8 +1196,21 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       categories.forEach((catName, index) => {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "category-btn py-2.5 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 text-xs font-medium text-slate-700 dark:text-slate-300 hover:border-brand-500/50 hover:bg-white dark:hover:bg-slate-800 transition text-center truncate shadow-sm";
-        btn.textContent = catName;
+        btn.className = "category-btn group relative flex items-center gap-2.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 text-left transition-all duration-150 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 active:scale-[0.98]";
+        
+        const iconSvg = getCategoryIconSvg(catName);
+        btn.innerHTML = \`
+          <div class="category-icon-box w-7 h-7 rounded-lg flex items-center justify-center bg-white dark:bg-slate-800 shadow-2xs shrink-0 transition-transform group-hover:scale-105">
+            \${iconSvg}
+          </div>
+          <span class="category-name text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate flex-1">\${catName}</span>
+          <div class="category-check hidden w-4 h-4 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
+            <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        \`;
+
         btn.onclick = () => selectCategory(catName, btn);
         categoryContainer.appendChild(btn);
 
@@ -1058,16 +1221,35 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
 
       const contentEl = document.getElementById("content");
       const charCountEl = document.getElementById("char-count");
+      const charProgressEl = document.getElementById("char-progress");
+      const clearBtn = document.getElementById("btn-clear-content");
+
       contentEl.addEventListener("input", () => {
         const len = contentEl.value.length;
         charCountEl.textContent = \`\${len} / 1000\`;
-        if (len >= 10 && len <= 1000) {
-          charCountEl.className = "text-xs font-mono text-brand-600 dark:text-brand-400";
+        const percentage = Math.min(100, Math.round((len / 1000) * 100));
+        charProgressEl.style.width = percentage + "%";
+
+        if (len > 0) {
+          clearBtn.classList.remove("hidden");
+        } else {
+          clearBtn.classList.add("hidden");
+        }
+
+        if (len >= 10 && len <= 900) {
+          charCountEl.className = "text-xs font-mono text-brand-600 dark:text-brand-400 font-medium";
+          charProgressEl.className = "h-full bg-brand-500 transition-all duration-150 rounded-full";
+          document.getElementById("content-error").classList.add("hidden");
+        } else if (len > 900 && len <= 1000) {
+          charCountEl.className = "text-xs font-mono text-amber-500 font-medium";
+          charProgressEl.className = "h-full bg-amber-500 transition-all duration-150 rounded-full";
           document.getElementById("content-error").classList.add("hidden");
         } else if (len > 1000) {
-          charCountEl.className = "text-xs font-mono text-rose-500";
+          charCountEl.className = "text-xs font-mono text-rose-500 font-medium";
+          charProgressEl.className = "h-full bg-rose-500 transition-all duration-150 rounded-full";
         } else {
-          charCountEl.className = "text-xs font-mono text-slate-400 dark:text-slate-500";
+          charCountEl.className = "text-xs font-mono text-slate-400 dark:text-slate-500 font-medium";
+          charProgressEl.className = "h-full bg-slate-300 dark:bg-slate-600 transition-all duration-150 rounded-full";
         }
       });
 
@@ -1075,15 +1257,27 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       footerEl.textContent = \`App: \${clientPkg} | v\${clientVer} | \${clientOs} | \${clientLang.toUpperCase()}\`;
     }
 
+    function clearContent() {
+      const contentEl = document.getElementById("content");
+      contentEl.value = "";
+      contentEl.dispatchEvent(new Event("input"));
+      contentEl.focus();
+    }
+
     function selectCategory(catName, activeBtn) {
       selectedCategory = catName;
       document.querySelectorAll(".category-btn").forEach(btn => {
-        btn.classList.remove("border-brand-600", "bg-brand-50", "text-brand-700", "dark:border-brand-500", "dark:bg-brand-950/40", "dark:text-brand-300", "font-semibold");
-        btn.classList.add("border-slate-200", "dark:border-slate-700", "bg-slate-50", "dark:bg-slate-900/40", "text-slate-700", "dark:text-slate-300");
+        btn.classList.remove("border-brand-500", "ring-2", "ring-brand-500/20", "bg-brand-50/70", "dark:bg-brand-950/40", "dark:border-brand-500");
+        btn.classList.add("border-slate-200", "dark:border-slate-800", "bg-slate-50/70", "dark:bg-slate-900/40");
+        const check = btn.querySelector(".category-check");
+        if (check) check.classList.add("hidden");
       });
 
-      activeBtn.classList.remove("border-slate-200", "dark:border-slate-700", "bg-slate-50", "dark:bg-slate-900/40", "text-slate-700", "dark:text-slate-300");
-      activeBtn.classList.add("border-brand-600", "bg-brand-50", "text-brand-700", "dark:border-brand-500", "dark:bg-brand-950/40", "dark:text-brand-300", "font-semibold");
+      activeBtn.classList.remove("border-slate-200", "dark:border-slate-800", "bg-slate-50/70", "dark:bg-slate-900/40");
+      activeBtn.classList.add("border-brand-500", "ring-2", "ring-brand-500/20", "bg-brand-50/70", "dark:bg-brand-950/40", "dark:border-brand-500");
+      const activeCheck = activeBtn.querySelector(".category-check");
+      if (activeCheck) activeCheck.classList.remove("hidden");
+
       document.getElementById("category-error").classList.add("hidden");
     }
 
@@ -1173,16 +1367,13 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
 
         if (res.ok && result.success) {
           localStorage.setItem("feedback_last_submit_time", Date.now().toString());
-          document.getElementById("form-card").classList.add("hidden");
-          const successCard = document.getElementById("success-card");
-          successCard.classList.remove("hidden");
-
-          // 回显该用户刚提交的工单凭据与详细内容（绝不向普通用户展示后台表格）
-          document.getElementById("ticket-id-display").textContent = result.data?.ticket_id || ("T-" + Date.now().toString(36));
-          document.getElementById("ticket-cat-display").textContent = selectedCategory || "默认";
-          document.getElementById("ticket-email-display").textContent = email || "未提供";
-          document.getElementById("ticket-content-display").textContent = content;
-
+          renderSuccessTicket({
+            ticketId: result.data?.ticket_id || ("T-" + Date.now().toString(36).toUpperCase()),
+            category: selectedCategory,
+            email: email || t.anonymous,
+            content: content,
+            time: result.data?.time || new Date().toLocaleString()
+          });
           startCooldown(60);
         } else {
           alert(result.error || "Submission failed. Please try again.");
@@ -1199,10 +1390,65 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       }
     }
 
+    function renderSuccessTicket({ ticketId, category, email, content, time }) {
+      lastTicketPayload = { ticketId, category, email, content, time, pkg: clientPkg };
+      document.getElementById("form-card").classList.add("hidden");
+      const successCard = document.getElementById("success-card");
+      successCard.classList.remove("hidden");
+
+      document.getElementById("ticket-id-display").textContent = ticketId;
+      document.getElementById("ticket-pkg-display").textContent = clientPkg;
+      document.getElementById("ticket-cat-display").textContent = category;
+      document.getElementById("ticket-email-display").textContent = email;
+      document.getElementById("ticket-time-display").textContent = time;
+      document.getElementById("ticket-content-display").textContent = content;
+    }
+
+    function copyTicketId() {
+      const t = I18N[clientLang];
+      const idText = document.getElementById("ticket-id-display").textContent;
+      navigator.clipboard.writeText(idText).then(() => {
+        const copyTextEl = document.getElementById("copy-text");
+        const copyIconEl = document.getElementById("copy-icon");
+
+        copyTextEl.textContent = t.copied;
+        copyTextEl.classList.add("text-emerald-600", "dark:text-emerald-400");
+        copyIconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />';
+        copyIconEl.classList.remove("text-slate-500");
+        copyIconEl.classList.add("text-emerald-500");
+
+        setTimeout(() => {
+          copyTextEl.textContent = t.copyId;
+          copyTextEl.classList.remove("text-emerald-600", "dark:text-emerald-400");
+          copyIconEl.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+          copyIconEl.classList.remove("text-emerald-500");
+          copyIconEl.classList.add("text-slate-500");
+        }, 1800);
+      });
+    }
+
+    function copySummary() {
+      const t = I18N[clientLang];
+      if (!lastTicketPayload) return;
+      const summaryText = "[Feedback Hub Ticket Receipt]\\nTicket ID: " + lastTicketPayload.ticketId + "\\nApp: " + lastTicketPayload.pkg + "\\nCategory: " + lastTicketPayload.category + "\\nEmail: " + lastTicketPayload.email + "\\nTime: " + lastTicketPayload.time + "\\nContent:\\n" + lastTicketPayload.content;
+      navigator.clipboard.writeText(summaryText).then(() => {
+        const summaryBtn = document.getElementById("btn-copy-summary");
+        const originText = summaryBtn.textContent;
+        summaryBtn.textContent = "✓ " + t.copied;
+        summaryBtn.classList.add("text-emerald-600", "dark:text-emerald-400");
+        setTimeout(() => {
+          summaryBtn.textContent = originText;
+          summaryBtn.classList.remove("text-emerald-600", "dark:text-emerald-400");
+        }, 1800);
+      });
+    }
+
     function resetForm() {
       document.getElementById("content").value = "";
       document.getElementById("email").value = "";
       document.getElementById("char-count").textContent = "0 / 1000";
+      document.getElementById("char-progress").style.width = "0%";
+      document.getElementById("btn-clear-content").classList.add("hidden");
       document.getElementById("form-card").classList.remove("hidden");
       document.getElementById("success-card").classList.add("hidden");
       checkRateLimit();
