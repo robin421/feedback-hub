@@ -1,0 +1,16 @@
+# Cloudflare Workers 本地开发环境变量 (由 Wrangler 自动读取)
+# 复制此文件为 .dev.vars 并填入真实的 API Key 和 Token
+
+# 1. Google Gemini API Key (用于翻译、摘要提炼与反垃圾)
+# 获取地址: https://aistudio.google.com/
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# 2. GitHub Fine-grained Personal Access Token (仅需 Issues: Read and write 权限)
+# 获取地址: https://github.com/settings/tokens?type=beta
+GITHUB_TOKEN=github_pat_your_token_here
+
+# 3. 兜底 Issue 仓库 (格式: username/repo-name)
+GITHUB_DEFAULT_REPO=your-github-username/feedback-inbox
+
+# 4. (可选) 动态项目映射 JSON 字符串
+REPO_MAP_JSON={"com.turboLink.fast":"your-github-username/nnlink-repo","ext.lockbox":"your-github-username/lockbox-repo"}

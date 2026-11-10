@@ -1,0 +1,26 @@
+{
+  "name": "feedback-hub",
+  "version": "1.0.0",
+  "description": "Zero-maintenance, one-way indie developer feedback hub powered by Cloudflare Workers, Gemini 2.5 Flash, and GitHub Issues",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node test/mock_test.js",
+    "setup": "node scripts/setup.js",
+    "doctor": "node scripts/doctor.js"
+  },
+  "keywords": [
+    "feedback",
+    "cloudflare-workers",
+    "gemini",
+    "github-issues",
+    "indie-hacker"
+  ],
+  "author": "Indie Developer Team",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.80.0"
+  }
+}
