@@ -20,7 +20,7 @@
 | **TASK-03** | Google Sheets 自动化接入与 ego-browser 全自动联调 | Developer | TASK-02 | `docs/GOOGLE_SHEETS_SETUP.md`, `src/index.js`, `.dev.vars` | **DONE** | ego-browser 全自动创建 Apps Script 并部署为任何人可访问的 Web App，实测写入成功 |
 | **TASK-04** | 跨平台客户端 SDK 代码片段封装 | Developer | TASK-02 | `clients/` (Kotlin, Swift, Dart, JS) | **DONE** | 四大平台开箱即用，自动拼接 URL Query 与 extra JSON |
 | **TASK-05** | 本地集成验证与健壮性测试 | QA | TASK-02 | `test/mock_test.js` | **DONE** | 覆盖正常流程、蜜罐拦截、AI 超时降级等 8/8 用例全部通过 |
-| **TASK-06** | 生产环境正式部署与终端用户隐私彻底隔离 | Manager | TASK-01~05 | Cloudflare Workers (`feedback-hub`) | **DONE** | 线上生产域名 `https://feedback-hub.robin421.workers.dev` 部署完成，终端用户提交后仅回显自身工单凭据与内容，管理表格彻底隔离 |
+| **TASK-06** | 生产环境正式部署、终端隐私彻底隔离与全球多语言 (i18n) 支持 | Manager | TASK-01~05 | Cloudflare Workers (`feedback-hub`) | **DONE** | 线上域名 `https://feedback-hub.robin421.workers.dev` 部署完成，支持全球 8 种主流语言自适应与即时切换，Gemini 自动跨语言翻译归集 |
 
 ---
 
