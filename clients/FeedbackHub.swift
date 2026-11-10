@@ -35,8 +35,25 @@ public final class FeedbackHub {
         let model = UIDevice.current.model
         let osInfo = "\(systemName) \(systemVersion) - \(model)"
 
-        let preferredLang = Locale.preferredLanguages.first ?? "en"
-        let lang = preferredLang.starts(with: "zh") ? "zh" : "en"
+        let preferredLang = (Locale.preferredLanguages.first ?? "en").lowercased()
+        let lang: String
+        if preferredLang.starts(with: "zh-tw") || preferredLang.starts(with: "zh-hk") || preferredLang.starts(with: "zh-hant") {
+            lang = "zh-tw"
+        } else if preferredLang.starts(with: "zh") {
+            lang = "zh"
+        } else if preferredLang.starts(with: "ja") {
+            lang = "ja"
+        } else if preferredLang.starts(with: "ko") {
+            lang = "ko"
+        } else if preferredLang.starts(with: "es") {
+            lang = "es"
+        } else if preferredLang.starts(with: "de") {
+            lang = "de"
+        } else if preferredLang.starts(with: "fr") {
+            lang = "fr"
+        } else {
+            lang = "en"
+        }
 
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "pkg", value: bundleId),

@@ -55,8 +55,18 @@ object FeedbackHub {
         // 设备与系统信息: e.g. "Android 14 (API 34) - Google Pixel 7"
         val osInfo = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT}) - ${Build.MANUFACTURER} ${Build.MODEL}"
         
-        // 界面语言简码: "zh" 或 "en"
-        val lang = if (Locale.getDefault().language.startsWith("zh")) "zh" else "en"
+        // 界面语言探测: 支持 zh, zh-tw, ja, ko, es, de, fr, en
+        val localeTag = Locale.getDefault().toLanguageTag().lowercase()
+        val lang = when {
+            localeTag.startsWith("zh-tw") || localeTag.startsWith("zh-hk") || localeTag.startsWith("zh-hant") -> "zh-tw"
+            localeTag.startsWith("zh") -> "zh"
+            localeTag.startsWith("ja") -> "ja"
+            localeTag.startsWith("ko") -> "ko"
+            localeTag.startsWith("es") -> "es"
+            localeTag.startsWith("de") -> "de"
+            localeTag.startsWith("fr") -> "fr"
+            else -> "en"
+        }
 
         val uriBuilder = Uri.parse(baseUrl).buildUpon()
             .appendQueryParameter("pkg", pkg)

@@ -30,7 +30,24 @@ class FeedbackHub {
   }) {
     final osInfo = '${Platform.operatingSystem} ${Platform.operatingSystemVersion}';
     final locale = Platform.localeName.toLowerCase();
-    final lang = locale.startsWith('zh') ? 'zh' : 'en';
+    final String lang;
+    if (locale.startsWith('zh-tw') || locale.startsWith('zh-hk') || locale.startsWith('zh-hant')) {
+      lang = 'zh-tw';
+    } else if (locale.startsWith('zh')) {
+      lang = 'zh';
+    } else if (locale.startsWith('ja')) {
+      lang = 'ja';
+    } else if (locale.startsWith('ko')) {
+      lang = 'ko';
+    } else if (locale.startsWith('es')) {
+      lang = 'es';
+    } else if (locale.startsWith('de')) {
+      lang = 'de';
+    } else if (locale.startsWith('fr')) {
+      lang = 'fr';
+    } else {
+      lang = 'en';
+    }
 
     final queryParams = <String, String>{
       'pkg': packageName,

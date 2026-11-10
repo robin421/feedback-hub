@@ -767,21 +767,37 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
         <!-- 左侧专栏 (桌面端 5 列，移动端置顶，无需独立全局 Header) -->
         <div class="lg:col-span-5 flex flex-col justify-between mb-7 lg:mb-0 lg:border-r lg:border-slate-100 dark:lg:border-slate-800/80 lg:pr-8">
           <div>
-            <!-- 产品与状态一体化药丸徽章 -->
-            <div class="flex items-center gap-2 mb-4 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-300 border border-brand-200/70 dark:border-brand-900/60 shadow-2xs">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span id="badge-pkg">${pkg}</span>
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/60 dark:border-emerald-900/40">
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            <!-- 产品与状态一体化药丸徽章 + 语言切换器 -->
+            <div class="flex items-center justify-between gap-2 mb-4 flex-wrap">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-300 border border-brand-200/70 dark:border-brand-900/60 shadow-2xs">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <span id="badge-pkg">${pkg}</span>
                 </span>
-                <span id="label-live-status">支持团队在线</span>
-              </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/60 dark:border-emerald-900/40">
+                  <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span id="label-live-status">支持团队在线</span>
+                </span>
+              </div>
+              
+              <!-- 极简无感多语言切换器 -->
+              <div class="relative">
+                <select id="lang-selector" onchange="switchLanguage(this.value)" class="text-[11px] bg-slate-100/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 rounded-full px-2.5 py-1 border border-slate-200/70 dark:border-slate-700/70 cursor-pointer outline-none focus:ring-1 focus:ring-brand-500 font-medium transition hover:border-slate-300 dark:hover:border-slate-600">
+                  <option value="zh">🇨🇳 简体中文</option>
+                  <option value="zh-tw">🇭🇰 繁體中文</option>
+                  <option value="en">🇺🇸 English</option>
+                  <option value="ja">🇯🇵 日本語</option>
+                  <option value="ko">🇰🇷 한국어</option>
+                  <option value="es">🇪🇸 Español</option>
+                  <option value="de">🇩🇪 Deutsch</option>
+                  <option value="fr">🇫🇷 Français</option>
+                </select>
+              </div>
             </div>
             
             <h1 id="app-title" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2.5 leading-tight">
@@ -981,19 +997,19 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
         <!-- 四项元数据网格 -->
         <div class="grid grid-cols-2 gap-3 text-xs">
           <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-            <span class="text-slate-400 text-[11px] block">所属应用</span>
+            <span id="ticket-label-pkg" class="text-slate-400 text-[11px] block">所属应用</span>
             <span id="ticket-pkg-display" class="font-semibold text-slate-800 dark:text-slate-200 truncate block mt-0.5">${pkg}</span>
           </div>
           <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-            <span class="text-slate-400 text-[11px] block">问题类别</span>
+            <span id="ticket-label-cat" class="text-slate-400 text-[11px] block">问题类别</span>
             <span id="ticket-cat-display" class="font-semibold text-slate-800 dark:text-slate-200 truncate block mt-0.5">程序报错</span>
           </div>
           <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-            <span class="text-slate-400 text-[11px] block">联系方式</span>
+            <span id="ticket-label-email" class="text-slate-400 text-[11px] block">联系方式</span>
             <span id="ticket-email-display" class="font-mono text-slate-700 dark:text-slate-300 truncate block mt-0.5">未提供</span>
           </div>
           <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-            <span class="text-slate-400 text-[11px] block">提交时间</span>
+            <span id="ticket-label-time" class="text-slate-400 text-[11px] block">提交时间</span>
             <span id="ticket-time-display" class="font-mono text-slate-700 dark:text-slate-300 truncate block mt-0.5">刚刚</span>
           </div>
         </div>
@@ -1001,7 +1017,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
         <!-- 提交内容快照折叠框 -->
         <div class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-[11px] font-semibold text-slate-400">已存档描述快照:</span>
+            <span id="ticket-label-content" class="text-[11px] font-semibold text-slate-400">已存档描述快照:</span>
             <span class="text-[10px] text-slate-400 font-mono">1:1 Raw</span>
           </div>
           <div id="ticket-content-display" class="p-2.5 bg-white dark:bg-slate-950/60 rounded-xl border border-slate-200/50 dark:border-slate-800 text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed max-h-32 overflow-y-auto font-sans text-xs"></div>
@@ -1046,27 +1062,99 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
   <script>
     const APP_CONFIG = {
       "default": {
-        name: { zh: "用户问题与建议反馈", en: "Feedback Center" },
-        desc: { zh: "感谢您的宝贵意见，我们专注于以代码改进体验，所有工单自动沉淀至团队在线表格", en: "Help us improve product experience. Tickets are synced directly to our engineering spreadsheet." },
+        name: {
+          zh: "用户问题与建议反馈",
+          "zh-tw": "用戶問題與建議反饋",
+          en: "Feedback Center",
+          ja: "ユーザーフィードバック",
+          ko: "고객 지원 및 피드백",
+          es: "Centro de comentarios",
+          de: "Feedback-Zentrum",
+          fr: "Centre de retours"
+        },
+        desc: {
+          zh: "感谢您的宝贵意见，我们专注于以代码改进体验，所有工单自动沉淀至团队在线表格",
+          "zh-tw": "感謝您的寶貴意見，我們專注於以代碼改進體驗，所有工單自動沉澱至團隊在線表格",
+          en: "Help us improve product experience. Tickets are synced directly to our engineering spreadsheet.",
+          ja: "ご意見ありがとうございます。チームで確認し、コードの改善に役立てます。",
+          ko: "소중한 의견 감사드립니다. 모든 피드백은 개발팀 스프레드시트에 자동 수집됩니다.",
+          es: "Gracias por sus comentarios. Nos enfocamos en mejorar el código continuamente.",
+          de: "Vielen Dank für Ihre Rückmeldung. Wir konzentrieren uns auf kontinuierliche Code-Verbesserungen.",
+          fr: "Merci pour vos retours. Nous nous concentrons sur l'amélioration continue du code."
+        },
         categories: {
           zh: ["程序报错/闪退", "功能不好用", "新功能建议", "其他问题"],
-          en: ["Bug / Crash", "Usability", "Feature Request", "Other"]
+          "zh-tw": ["程式報錯/閃退", "功能不好用", "新功能建議", "其他問題"],
+          en: ["Bug / Crash", "Usability", "Feature Request", "Other"],
+          ja: ["バグ・不具合", "操作性・UI", "新機能の提案", "その他"],
+          ko: ["오류 / 강제종료", "사용성 불편", "새 기능 제안", "기타 문의"],
+          es: ["Error / Fallo", "Usabilidad", "Sugerencia", "Otro"],
+          de: ["Fehler / Absturz", "Bedienbarkeit", "Funktionswunsch", "Sonstiges"],
+          fr: ["Bug / Panne", "Ergonomie", "Suggestion", "Autre"]
         }
       },
       "aisubdeal": {
-        name: { zh: "AiSubDeal 订阅比价助手", en: "AiSubDeal Feedback" },
-        desc: { zh: "价格追踪、汇率换算与各平台订阅信息反馈", en: "Feedback for price tracking and subscriptions" },
+        name: {
+          zh: "AiSubDeal 订阅比价助手",
+          "zh-tw": "AiSubDeal 訂閱比價助手",
+          en: "AiSubDeal Feedback",
+          ja: "AiSubDeal サブスク比較アシスタント",
+          ko: "AiSubDeal 구독 비교 어시스턴트",
+          es: "AiSubDeal Comparador de suscripciones",
+          de: "AiSubDeal Abo-Vergleichsassistent",
+          fr: "AiSubDeal Comparateur d'abonnements"
+        },
+        desc: {
+          zh: "价格追踪、汇率换算与各平台订阅信息反馈",
+          "zh-tw": "價格追蹤、匯率換算與各平台訂閱資訊反饋",
+          en: "Feedback for price tracking, exchange rates and subscriptions",
+          ja: "価格追跡・為替換算・各プラットフォームのサブスク情報に関するフィードバック",
+          ko: "가격 추적, 환율 계산 및 구독 정보 피드백",
+          es: "Seguimiento de precios, tipos de cambio y suscripciones",
+          de: "Feedback zu Preisverfolgung, Wechselkursen und Abonnements",
+          fr: "Retours sur le suivi des prix, les devises et les abonnements"
+        },
         categories: {
           zh: ["价格不准", "汇率问题", "功能建议", "其他"],
-          en: ["Price Inaccurate", "Currency Issue", "Feature Request", "Other"]
+          "zh-tw": ["價格不準", "匯率問題", "功能建議", "其他"],
+          en: ["Price Inaccurate", "Currency Issue", "Feature Request", "Other"],
+          ja: ["価格が不正確", "為替レートの問題", "新機能の提案", "その他"],
+          ko: ["가격 불일치", "환율 오류", "기능 건의", "기타"],
+          es: ["Precio inexacto", "Problema de cambio", "Sugerencia", "Otro"],
+          de: ["Preis ungenau", "Wechselkursproblem", "Funktionswunsch", "Sonstiges"],
+          fr: ["Prix inexact", "Problème de devise", "Suggestion", "Autre"]
         }
       },
       "fitflow": {
-        name: { zh: "FitFlow 健身计划", en: "FitFlow Feedback" },
-        desc: { zh: "动作库、周期记录与训练数据同步反馈", en: "Workout tracking and routine feedback" },
+        name: {
+          zh: "FitFlow 健身计划",
+          "zh-tw": "FitFlow 健身計劃",
+          en: "FitFlow Feedback",
+          ja: "FitFlow ワークアウト管理",
+          ko: "FitFlow 운동 루틴 플래너",
+          es: "FitFlow Planificador de fitness",
+          de: "FitFlow Trainingsplaner",
+          fr: "FitFlow Planificateur de fitness"
+        },
+        desc: {
+          zh: "动作库、周期记录与训练数据同步反馈",
+          "zh-tw": "動作庫、週期記錄與訓練數據同步反饋",
+          en: "Workout tracking, exercise routines and sync feedback",
+          ja: "種目ライブラリ・記録・データ同期に関するフィードバック",
+          ko: "운동 라이브러리, 일지 및 데이터 동기화 피드백",
+          es: "Biblioteca de ejercicios, registro y sincronización",
+          de: "Übungsbibliothek, Verlauf und Daten-Synchronisation",
+          fr: "Exercices, suivi et synchronisation des données"
+        },
         categories: {
           zh: ["数据同步失败", "动作库建议", "界面优化", "其他"],
-          en: ["Sync Failed", "Exercise Request", "UI Improvement", "Other"]
+          "zh-tw": ["數據同步失敗", "動作庫建議", "界面優化", "其他"],
+          en: ["Sync Failed", "Exercise Request", "UI Improvement", "Other"],
+          ja: ["同期エラー", "種目の追加要望", "UI改善", "その他"],
+          ko: ["동기화 오류", "운동 추가 요청", "UI 개선", "기타"],
+          es: ["Error de sincronización", "Solicitud de ejercicio", "Mejora de interfaz", "Otro"],
+          de: ["Sync fehlgeschlagen", "Übungsvorschlag", "UI-Verbesserung", "Sonstiges"],
+          fr: ["Échec de synchro", "Nouvel exercice", "Amélioration UI", "Autre"]
         }
       }
     };
@@ -1095,7 +1183,48 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
         summaryCopied: "凭证摘要已复制到剪贴板",
         selectCategoryError: "请选择一个问题分类",
         contentLengthError: "内容长度需在 10 至 1000 字之间",
-        anonymous: "匿名提交"
+        anonymous: "匿名提交",
+        ticketIdLabel: "工单编号",
+        pkgLabel: "所属应用",
+        catLabel: "问题类别",
+        emailMetaLabel: "联系方式",
+        timeLabel: "提交时间",
+        contentMetaLabel: "已存档描述快照",
+        statusBadgeText: "已入排期队列",
+        justNow: "刚刚"
+      },
+      "zh-tw": {
+        categoryLabel: "問題分類",
+        categoryHint: "請選擇最符合的一項",
+        contentLabel: "詳細描述",
+        contentPlaceholder: "請詳細描述您遇到的問題現象、復現步驟或期望，幫助我們準確定位（10~1000字）...",
+        contentHint: "至少輸入 10 個字符",
+        clearText: "清空",
+        emailLabel: "聯絡信箱 (選填)",
+        emailPlaceholder: "選填：僅在修復重大問題或需要補充資訊時通知您",
+        submitText: "提交反饋",
+        submittingText: "提交中...",
+        rateLimitText: "請稍候 {sec}s 後再提交",
+        managementNotice: "感謝反饋！每一條工單都會直達開發排期隊列。作為獨立開發團隊我們專注於代碼改進，通常不會進行人工一對一回覆，重大進展會通過郵箱通知。",
+        liveStatusText: "技術支援在線",
+        successTitle: "工單已歸檔入庫",
+        successDesc: "您的反饋已自動直連多維表格看板並生成唯一存證憑據。",
+        btnBack: "返回 / 再次提交",
+        btnCopySummary: "複製憑證摘要",
+        copied: "已複製",
+        copyId: "複製單號",
+        summaryCopied: "憑證摘要已複製到剪貼簿",
+        selectCategoryError: "請選擇一個問題分類",
+        contentLengthError: "內容長度需在 10 至 1000 字之間",
+        anonymous: "匿名提交",
+        ticketIdLabel: "工單編號",
+        pkgLabel: "所屬應用",
+        catLabel: "問題類別",
+        emailMetaLabel: "聯絡方式",
+        timeLabel: "提交時間",
+        contentMetaLabel: "已存檔描述快照",
+        statusBadgeText: "已入排期隊列",
+        justNow: "剛剛"
       },
       en: {
         categoryLabel: "Category",
@@ -1109,7 +1238,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
         submitText: "Submit Ticket",
         submittingText: "Submitting...",
         rateLimitText: "Please wait {sec}s",
-        managementNotice: "Thank you! Every ticket is logged directly into our spreadsheet. We focus 100% on code improvements.",
+        managementNotice: "Thank you! Every ticket is routed directly to our engineering backlog. As an indie team we focus 100% on shipping code improvements and generally do not offer 1-on-1 support; major updates will be emailed.",
         liveStatusText: "Support Online",
         successTitle: "Ticket Recorded",
         successDesc: "Your feedback has been routed to our spreadsheet backlog with a permanent receipt.",
@@ -1120,19 +1249,213 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
         summaryCopied: "Receipt summary copied to clipboard",
         selectCategoryError: "Please choose a category",
         contentLengthError: "Description must be between 10 and 1000 characters",
-        anonymous: "Anonymous"
+        anonymous: "Anonymous",
+        ticketIdLabel: "Ticket ID",
+        pkgLabel: "Product",
+        catLabel: "Category",
+        emailMetaLabel: "Contact",
+        timeLabel: "Submitted At",
+        contentMetaLabel: "Archived Snapshot",
+        statusBadgeText: "Queued for Review",
+        justNow: "Just now"
+      },
+      ja: {
+        categoryLabel: "カテゴリ",
+        categoryHint: "最も当てはまるものを選択",
+        contentLabel: "詳細な説明",
+        contentPlaceholder: "発生した現象、再現手順、またはご要望をご記入ください（10〜1000文字）...",
+        contentHint: "10文字以上入力してください",
+        clearText: "クリア",
+        emailLabel: "連絡先メールアドレス (任意)",
+        emailPlaceholder: "任意：重要な修正や確認が必要な場合のみご連絡します",
+        submitText: "フィードバックを送信",
+        submittingText: "送信中...",
+        rateLimitText: "{sec}秒後にお試しください",
+        managementNotice: "フィードバックありがとうございます！すべてのチケットは開発バックログに直接記録されます。個人開発チームとしてコードの改善に専念しており、原則として個別返信は行っておりません。重要な進捗はメールでお知らせします。",
+        liveStatusText: "サポート受付中",
+        successTitle: "チケットを登録しました",
+        successDesc: "フィードバックはスプレッドシートに記録され、専用の証明控えが発行されました。",
+        btnBack: "別のフィードバックを送信",
+        btnCopySummary: "控えをコピー",
+        copied: "コピー完了",
+        copyId: "IDをコピー",
+        summaryCopied: "控えの内容をクリップボードにコピーしました",
+        selectCategoryError: "カテゴリを選択してください",
+        contentLengthError: "説明は10文字以上1000文字以内で入力してください",
+        anonymous: "匿名",
+        ticketIdLabel: "チケット番号",
+        pkgLabel: "対象製品",
+        catLabel: "カテゴリ",
+        emailMetaLabel: "連絡先",
+        timeLabel: "送信日時",
+        contentMetaLabel: "送信内容の控え",
+        statusBadgeText: "確認待ち",
+        justNow: "たった今"
+      },
+      ko: {
+        categoryLabel: "카테고리",
+        categoryHint: "가장 적합한 항목 선택",
+        contentLabel: "상세 설명",
+        contentPlaceholder: "발생한 문제, 재현 단계 또는 건의사항을 자세히 적어주세요 (10~1000자)...",
+        contentHint: "최소 10자 이상 입력해주세요",
+        clearText: "지우기",
+        emailLabel: "연락처 이메일 (선택)",
+        emailPlaceholder: "선택사항: 중요한 수정사항이나 확인이 필요한 경우에만 연락드립니다",
+        submitText: "피드백 제출",
+        submittingText: "제출 중...",
+        rateLimitText: "{sec}초 후에 다시 시도해주세요",
+        managementNotice: "피드백 감사합니다! 모든 티켓은 개발 대기열에 직접 등록됩니다. 1인/소규모 개발팀으로서 코드 개선에 집중하고 있어 개별 1:1 답변은 어려울 수 있으며, 중요한 진행 상황은 이메일로 안내해 드립니다.",
+        liveStatusText: "지원 접수 중",
+        successTitle: "티켓이 등록되었습니다",
+        successDesc: "피드백이 스프레드시트에 정상 등록되었으며 고유 접수증이 발급되었습니다.",
+        btnBack: "추가 피드백 제출",
+        btnCopySummary: "접수 요약 복사",
+        copied: "복사됨",
+        copyId: "ID 복사",
+        summaryCopied: "접수 요약이 클립보드에 복사되었습니다",
+        selectCategoryError: "카테고리를 선택해주세요",
+        contentLengthError: "내용은 10자 이상 1000자 이하여야 합니다",
+        anonymous: "익명",
+        ticketIdLabel: "티켓 번호",
+        pkgLabel: "대상 제품",
+        catLabel: "카테고리",
+        emailMetaLabel: "연락처",
+        timeLabel: "접수 시간",
+        contentMetaLabel: "접수 내용 스냅샷",
+        statusBadgeText: "검토 대기 중",
+        justNow: "방금 전"
+      },
+      es: {
+        categoryLabel: "Categoría",
+        categoryHint: "Seleccione la más adecuada",
+        contentLabel: "Descripción detallada",
+        contentPlaceholder: "Describa el problema, pasos para reproducirlo o sugerencias (10-1000 caracteres)...",
+        contentHint: "Se requieren al menos 10 caracteres",
+        clearText: "Borrar",
+        emailLabel: "Correo de contacto (Opcional)",
+        emailPlaceholder: "Opcional: solo para actualizaciones críticas o aclaraciones",
+        submitText: "Enviar ticket",
+        submittingText: "Enviando...",
+        rateLimitText: "Espere {sec}s",
+        managementNotice: "¡Gracias por sus comentarios! Cada ticket se envía directamente a nuestro backlog de desarrollo. Como equipo independiente nos centramos en mejorar el código y generalmente no ofrecemos atención individual; las actualizaciones importantes se notificarán por correo.",
+        liveStatusText: "Soporte activo",
+        successTitle: "Ticket registrado",
+        successDesc: "Sus comentarios se han sincronizado con la hoja de cálculo con un comprobante permanente.",
+        btnBack: "Enviar otro ticket",
+        btnCopySummary: "Copiar resumen",
+        copied: "Copiado",
+        copyId: "Copiar ID",
+        summaryCopied: "Resumen del comprobante copiado al portapapeles",
+        selectCategoryError: "Seleccione una categoría",
+        contentLengthError: "La descripción debe tener entre 10 y 1000 caracteres",
+        anonymous: "Anónimo",
+        ticketIdLabel: "ID del ticket",
+        pkgLabel: "Producto",
+        catLabel: "Categoría",
+        emailMetaLabel: "Contacto",
+        timeLabel: "Enviado el",
+        contentMetaLabel: "Instantánea archivada",
+        statusBadgeText: "En cola de revisión",
+        justNow: "Ahora mismo"
+      },
+      de: {
+        categoryLabel: "Kategorie",
+        categoryHint: "Wählen Sie die passendste",
+        contentLabel: "Detaillierte Beschreibung",
+        contentPlaceholder: "Beschreiben Sie das Problem, Reproduktionsschritte oder Vorschläge (10-1000 Zeichen)...",
+        contentHint: "Mindestens 10 Zeichen erforderlich",
+        clearText: "Löschen",
+        emailLabel: "Kontakt-E-Mail (Optional)",
+        emailPlaceholder: "Optional: Nur für wichtige Updates oder Rückfragen",
+        submitText: "Feedback senden",
+        submittingText: "Wird gesendet...",
+        rateLimitText: "Bitte warten Sie {sec}s",
+        managementNotice: "Vielen Dank für Ihr Feedback! Jedes Ticket fließt direkt in unser Entwicklungs-Backlog ein. Als Indie-Team konzentrieren wir uns auf Code-Verbesserungen und bieten in der Regel keinen 1-zu-1-Support; wichtige Updates erhalten Sie per E-Mail.",
+        liveStatusText: "Support online",
+        successTitle: "Ticket erfasst",
+        successDesc: "Ihr Feedback wurde in unserer Tabelle erfasst und ein Beleg erstellt.",
+        btnBack: "Weiteres Feedback",
+        btnCopySummary: "Zusammenfassung kopieren",
+        copied: "Kopiert",
+        copyId: "ID kopieren",
+        summaryCopied: "Belegzusammenfassung in die Zwischenablage kopiert",
+        selectCategoryError: "Bitte wählen Sie eine Kategorie",
+        contentLengthError: "Die Beschreibung muss zwischen 10 und 1000 Zeichen lang sein",
+        anonymous: "Anonym",
+        ticketIdLabel: "Ticket-ID",
+        pkgLabel: "Produkt",
+        catLabel: "Kategorie",
+        emailMetaLabel: "Kontakt",
+        timeLabel: "Eingereicht am",
+        contentMetaLabel: "Archivierter Beleg",
+        statusBadgeText: "In Warteschlange",
+        justNow: "Gerade eben"
+      },
+      fr: {
+        categoryLabel: "Catégorie",
+        categoryHint: "Sélectionnez la plus pertinente",
+        contentLabel: "Description détaillée",
+        contentPlaceholder: "Veuillez décrire le problème, les étapes de reproduction ou vos suggestions (10-1000 caractères)...",
+        contentHint: "Au moins 10 caractères requis",
+        clearText: "Effacer",
+        emailLabel: "E-mail de contact (Optionnel)",
+        emailPlaceholder: "Optionnel : uniquement pour les mises à jour critiques",
+        submitText: "Envoyer le ticket",
+        submittingText: "Envoi en cours...",
+        rateLimitText: "Veuillez patienter {sec}s",
+        managementNotice: "Merci pour votre retour ! Chaque ticket est directement transmis à notre file de développement. En tant qu'équipe indépendante, nous nous concentrons sur l'amélioration du code et n'offrons généralement pas de support 1-à-1 ; les mises à jour majeures seront envoyées par e-mail.",
+        liveStatusText: "Support en ligne",
+        successTitle: "Ticket enregistré",
+        successDesc: "Votre retour a été enregistré dans notre tableau avec un reçu permanent.",
+        btnBack: "Envoyer un autre",
+        btnCopySummary: "Copier le résumé",
+        copied: "Copié",
+        copyId: "Copier l'ID",
+        summaryCopied: "Résumé du reçu copié dans le presse-papiers",
+        selectCategoryError: "Veuillez choisir une catégorie",
+        contentLengthError: "La description doit contenir entre 10 et 1000 caractères",
+        anonymous: "Anonyme",
+        ticketIdLabel: "N° de ticket",
+        pkgLabel: "Produit",
+        catLabel: "Catégorie",
+        emailMetaLabel: "Contact",
+        timeLabel: "Soumis le",
+        contentMetaLabel: "Aperçu archivé",
+        statusBadgeText: "En attente de révision",
+        justNow: "À l'instant"
       }
     };
 
-    // 智能获取精美 Lucide 矢量图标
+    function getI18n(lang) {
+      return I18N[lang] || I18N["en"];
+    }
+
+    function normalizeLang(lang) {
+      if (!lang) return "en";
+      const l = lang.toLowerCase();
+      if (l.startsWith("zh-tw") || l.startsWith("zh-hk") || l.startsWith("zh-mo") || l.startsWith("zh-hant")) return "zh-tw";
+      if (l.startsWith("zh")) return "zh";
+      if (l.startsWith("ja")) return "ja";
+      if (l.startsWith("ko")) return "ko";
+      if (l.startsWith("es")) return "es";
+      if (l.startsWith("de")) return "de";
+      if (l.startsWith("fr")) return "fr";
+      return "en";
+    }
+
+    // 智能获取精美 Lucide 矢量图标（支持 8 语种多语言关键字匹配）
     function getCategoryIconSvg(catName) {
-      const name = catName.toLowerCase();
-      if (name.includes("报错") || name.includes("闪退") || name.includes("bug") || name.includes("crash") || name.includes("失败") || name.includes("不准")) {
+      const name = (catName || "").toLowerCase();
+      // 1. Bug / Crash 类 (中英日韩西德法)
+      if (name.includes("报错") || name.includes("闪退") || name.includes("報錯") || name.includes("bug") || name.includes("crash") || name.includes("失败") || name.includes("失敗") || name.includes("不准") || name.includes("不準") || name.includes("バグ") || name.includes("不具合") || name.includes("오류") || name.includes("강제종료") || name.includes("error") || name.includes("fallo") || name.includes("fehler") || name.includes("absturz") || name.includes("panne")) {
         return '<svg class="w-4 h-4 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>';
-      } else if (name.includes("不好用") || name.includes("体验") || name.includes("优化") || name.includes("ui") || name.includes("usability") || name.includes("汇率")) {
+      // 2. 体验 / UI / 调优类
+      } else if (name.includes("不好用") || name.includes("体验") || name.includes("體驗") || name.includes("优化") || name.includes("優化") || name.includes("ui") || name.includes("usability") || name.includes("汇率") || name.includes("匯率") || name.includes("操作") || name.includes("使いづらい") || name.includes("改善") || name.includes("불편") || name.includes("usabilidad") || name.includes("bedienbarkeit") || name.includes("ergonomie")) {
         return '<svg class="w-4 h-4 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>';
-      } else if (name.includes("新功能") || name.includes("建议") || name.includes("feature") || name.includes("request") || name.includes("库建议")) {
+      // 3. 新功能建议 / 灵感
+      } else if (name.includes("新功能") || name.includes("建议") || name.includes("建議") || name.includes("feature") || name.includes("request") || name.includes("提案") || name.includes("要望") || name.includes("제안") || name.includes("sugerencia") || name.includes("vorschlag") || name.includes("suggestion") || name.includes("wunsch")) {
         return '<svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>';
+      // 4. 其他 / 咨询
       } else {
         return '<svg class="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>';
       }
@@ -1142,8 +1465,8 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
     const clientPkg = queryParams.get("pkg") || "${pkg}";
     const clientVer = queryParams.get("ver") || "${ver}";
     const clientOs = queryParams.get("os") || (navigator.userAgent.includes("Android") ? "Android" : navigator.userAgent.includes("iPhone") ? "iOS" : "Desktop Browser");
-    const paramLang = (queryParams.get("lang") || "${lang}").toLowerCase();
-    const clientLang = (paramLang === "zh" || (!paramLang && (navigator.language || "").startsWith("zh"))) ? "zh" : "en";
+    const rawParamLang = queryParams.get("lang") || "${lang}" || (typeof navigator !== "undefined" ? navigator.language : "en");
+    let clientLang = normalizeLang(rawParamLang);
     const clientExtra = queryParams.get("extra") || "";
 
     let selectedCategory = "";
@@ -1151,10 +1474,27 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
     let lastTicketPayload = null;
 
     document.addEventListener("DOMContentLoaded", () => {
+      const selector = document.getElementById("lang-selector");
+      if (selector) selector.value = clientLang;
       initUI();
       checkRateLimit();
       initKeyboardShortcuts();
     });
+
+    function switchLanguage(targetLang) {
+      clientLang = normalizeLang(targetLang);
+      const selector = document.getElementById("lang-selector");
+      if (selector) selector.value = clientLang;
+      initUI();
+      if (lastTicketPayload) {
+        renderSuccessTicket(lastTicketPayload);
+      }
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.set("lang", clientLang);
+        window.history.replaceState({}, "", u.toString());
+      } catch (e) {}
+    }
 
     function initKeyboardShortcuts() {
       document.addEventListener("keydown", (e) => {
@@ -1167,10 +1507,10 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
 
     function initUI() {
       const config = APP_CONFIG[clientPkg] || APP_CONFIG["default"];
-      const t = I18N[clientLang];
+      const t = getI18n(clientLang);
 
-      document.getElementById("app-title").textContent = config.name[clientLang] || config.name["en"];
-      document.getElementById("app-desc").textContent = config.desc[clientLang] || config.desc["en"];
+      document.getElementById("app-title").textContent = (config.name && config.name[clientLang]) || (config.name && config.name["en"]) || config.name["zh"];
+      document.getElementById("app-desc").textContent = (config.desc && config.desc[clientLang]) || (config.desc && config.desc["en"]) || config.desc["zh"];
       document.getElementById("badge-pkg").textContent = clientPkg;
       document.getElementById("label-live-status").textContent = t.liveStatusText;
 
@@ -1189,7 +1529,21 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       document.getElementById("btn-back").textContent = t.btnBack;
       document.getElementById("btn-copy-summary").textContent = t.btnCopySummary;
 
-      const categories = config.categories[clientLang] || config.categories["en"];
+      // 动态更新凭据卡片上的多语言标签
+      const statusBadge = document.getElementById("ticket-status-badge");
+      if (statusBadge) statusBadge.textContent = t.statusBadgeText;
+      const labelPkg = document.getElementById("ticket-label-pkg");
+      if (labelPkg) labelPkg.textContent = t.pkgLabel;
+      const labelCat = document.getElementById("ticket-label-cat");
+      if (labelCat) labelCat.textContent = t.catLabel;
+      const labelEmail = document.getElementById("ticket-label-email");
+      if (labelEmail) labelEmail.textContent = t.emailMetaLabel;
+      const labelTime = document.getElementById("ticket-label-time");
+      if (labelTime) labelTime.textContent = t.timeLabel;
+      const labelContent = document.getElementById("ticket-label-content");
+      if (labelContent) labelContent.textContent = t.contentMetaLabel + ":";
+
+      const categories = (config.categories && config.categories[clientLang]) || (config.categories && config.categories["en"]) || config.categories["zh"];
       const categoryContainer = document.getElementById("category-group");
       categoryContainer.innerHTML = "";
 
@@ -1224,7 +1578,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       const charProgressEl = document.getElementById("char-progress");
       const clearBtn = document.getElementById("btn-clear-content");
 
-      contentEl.addEventListener("input", () => {
+      contentEl.oninput = () => {
         const len = contentEl.value.length;
         charCountEl.textContent = \`\${len} / 1000\`;
         const percentage = Math.min(100, Math.round((len / 1000) * 100));
@@ -1251,7 +1605,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
           charCountEl.className = "text-xs font-mono text-slate-400 dark:text-slate-500 font-medium";
           charProgressEl.className = "h-full bg-slate-300 dark:bg-slate-600 transition-all duration-150 rounded-full";
         }
-      });
+      };
 
       const footerEl = document.getElementById("env-footer");
       footerEl.textContent = \`App: \${clientPkg} | v\${clientVer} | \${clientOs} | \${clientLang.toUpperCase()}\`;
@@ -1315,7 +1669,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
     }
 
     async function submitFeedback() {
-      const t = I18N[clientLang];
+      const t = getI18n(clientLang);
       const content = document.getElementById("content").value.trim();
       const email = document.getElementById("email").value.trim();
       const honeypot = document.getElementById("website_url").value;
@@ -1405,7 +1759,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
     }
 
     function copyTicketId() {
-      const t = I18N[clientLang];
+      const t = getI18n(clientLang);
       const idText = document.getElementById("ticket-id-display").textContent;
       navigator.clipboard.writeText(idText).then(() => {
         const copyTextEl = document.getElementById("copy-text");
@@ -1428,9 +1782,9 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
     }
 
     function copySummary() {
-      const t = I18N[clientLang];
+      const t = getI18n(clientLang);
       if (!lastTicketPayload) return;
-      const summaryText = "[Feedback Hub Ticket Receipt]\\nTicket ID: " + lastTicketPayload.ticketId + "\\nApp: " + lastTicketPayload.pkg + "\\nCategory: " + lastTicketPayload.category + "\\nEmail: " + lastTicketPayload.email + "\\nTime: " + lastTicketPayload.time + "\\nContent:\\n" + lastTicketPayload.content;
+      const summaryText = "[" + t.successTitle + "]\\n" + t.ticketIdLabel + ": " + lastTicketPayload.ticketId + "\\n" + t.pkgLabel + ": " + lastTicketPayload.pkg + "\\n" + t.catLabel + ": " + lastTicketPayload.category + "\\n" + t.emailMetaLabel + ": " + lastTicketPayload.email + "\\n" + t.timeLabel + ": " + lastTicketPayload.time + "\\n" + t.contentMetaLabel + ":\\n" + lastTicketPayload.content;
       navigator.clipboard.writeText(summaryText).then(() => {
         const summaryBtn = document.getElementById("btn-copy-summary");
         const originText = summaryBtn.textContent;

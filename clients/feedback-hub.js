@@ -56,8 +56,23 @@
            navigator.userAgent.includes('iPhone') ? 'iOS Web' : 'Web';
     }
 
-    const navLang = typeof navigator !== 'undefined' ? (navigator.language || 'en') : 'en';
-    const lang = navLang.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+    const navLang = (typeof navigator !== 'undefined' ? (navigator.language || 'en') : 'en').toLowerCase();
+    let lang = 'en';
+    if (navLang.startsWith('zh-tw') || navLang.startsWith('zh-hk') || navLang.startsWith('zh-hant')) {
+      lang = 'zh-tw';
+    } else if (navLang.startsWith('zh')) {
+      lang = 'zh';
+    } else if (navLang.startsWith('ja')) {
+      lang = 'ja';
+    } else if (navLang.startsWith('ko')) {
+      lang = 'ko';
+    } else if (navLang.startsWith('es')) {
+      lang = 'es';
+    } else if (navLang.startsWith('de')) {
+      lang = 'de';
+    } else if (navLang.startsWith('fr')) {
+      lang = 'fr';
+    }
 
     return { pkg, ver, os, lang };
   }
