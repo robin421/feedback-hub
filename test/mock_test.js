@@ -321,4 +321,36 @@ await runAsyncTest("analyzeWithGemini 识别到恶意垃圾信息时，不创建
   }
 });
 
+// 9. 测试 App 自定义工单内容（标题、描述、分类列表、输入框提示语）注入与解析
+runTest("GET / 支持 App 动态传入自定义工单内容 (title, desc, categories, placeholder)", () => {
+  const customHtml = renderHTML({
+    pkg: "videocut.pro",
+    ver: "3.2.0",
+    os: "Android 15",
+    lang: "zh",
+    customTitle: "剪辑大师用户反馈专区",
+    customDesc: "反馈导出黑屏、转码卡顿或滤镜失效，我们全力跟进",
+    customCategories: "导出黑屏,滤镜失效,音频不同步,功能建议",
+    customPlaceholder: "请详细说明视频分辨率和卡顿时间节点...",
+    sheetViewUrl: "https://docs.google.com/spreadsheets/d/test"
+  });
+
+  assert(customHtml.includes("SERVER_CUSTOM_CONFIG"), "应该包含 SERVER_CUSTOM_CONFIG 配置对象");
+  assert(customHtml.includes("剪辑大师用户反馈专区"), "应该注入 App 自定义的工单标题");
+  assert(customHtml.includes("导出黑屏,滤镜失效,音频不同步,功能建议"), "应该注入 App 自定义的分类列表");
+  assert(customHtml.includes("请详细说明视频分辨率和卡顿时间节点..."), "应该注入 App 自定义的占位提示");
+  assert(customHtml.includes("videocut.pro"), "应该保留传递的包名");
+});
+
+// 10. 测试 GET / HTTP 请求端到端解析 URL Query 自定义参数
+await runAsyncTest("worker.fetch(GET /?title=...&categories=...) 正确将 Query 注入 HTML", async () => {
+  const req = new Request("https://feedback-hub.robin421.workers.dev/?pkg=fitflow&lang=ja&title=%E3%83%AF%E3%83%BC%E3%82%AF%E3%82%A2%E3%82%A6%E3%83%88%E6%94%B9%E5%96%84&categories=%E8%A8%98%E9%8C%B2%E3%82%A8%E3%83%A9%E3%83%BC,%E6%96%B0%E7%A8%AE%E7%9B%AE%E8%A6%81%E6%9C%9B&placeholder=%E8%A9%B3%E7%B4%B0%E3%82%92%E5%85%A5%E5%8A%9B%E3%81%97%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84");
+  const res = await worker.fetch(req, {});
+  assert.strictEqual(res.status, 200);
+  const text = await res.text();
+  assert(text.includes("ワークアウト改善"), "应包含 URL 解码后的自定义标题");
+  assert(text.includes("記録エラー,新種目要望"), "应包含 URL 解码后的自定义分类");
+  assert(text.includes("詳細を入力してください"), "应包含 URL 解码后的自定义占位符");
+});
+
 console.log(`\n================ 测试完成: ${passedCount}/${totalCount} 用例全部通过 ================\n`);

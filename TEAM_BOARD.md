@@ -21,6 +21,7 @@
 | **TASK-04** | 跨平台客户端 SDK 代码片段封装 | Developer | TASK-02 | `clients/` (Kotlin, Swift, Dart, JS) | **DONE** | 四大平台开箱即用，自动拼接 URL Query 与 extra JSON |
 | **TASK-05** | 本地集成验证与健壮性测试 | QA | TASK-02 | `test/mock_test.js` | **DONE** | 覆盖正常流程、蜜罐拦截、AI 超时降级等 8/8 用例全部通过 |
 | **TASK-06** | 生产环境正式部署、终端隐私彻底隔离与全球多语言 (i18n) 支持 | Manager | TASK-01~05 | Cloudflare Workers (`feedback-hub`) | **DONE** | 线上域名 `https://feedback-hub.robin421.workers.dev` 部署完成，支持全球 8 种主流语言自适应与即时切换，Gemini 自动跨语言翻译归集 |
+| **TASK-07** | 客户端默认上传设备真实语言 & App 自定义工单内容系统 | Developer / Manager | TASK-06 | `clients/`, `src/index.js`, `test/mock_test.js` | **DONE** | SDK 默认自动提取真实设备语言；支持 App 传入自定义分类列表、自定义主副标题与占位符，前端自适应优先级渲染，10/10 自动化测试全绿并部署上线 |
 
 ---
 

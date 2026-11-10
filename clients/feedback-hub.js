@@ -56,9 +56,9 @@
            navigator.userAgent.includes('iPhone') ? 'iOS Web' : 'Web';
     }
 
-    const navLang = (typeof navigator !== 'undefined' ? (navigator.language || 'en') : 'en').toLowerCase();
+    const navLang = (typeof navigator !== 'undefined' ? (navigator.languages?.[0] || navigator.language || 'en') : 'en').toLowerCase();
     let lang = 'en';
-    if (navLang.startsWith('zh-tw') || navLang.startsWith('zh-hk') || navLang.startsWith('zh-hant')) {
+    if (navLang.startsWith('zh-tw') || navLang.startsWith('zh-hk') || navLang.startsWith('zh-mo') || navLang.startsWith('zh-hant')) {
       lang = 'zh-tw';
     } else if (navLang.startsWith('zh')) {
       lang = 'zh';
@@ -84,18 +84,51 @@
    * @param {string} [options.baseUrl] - 自定义 Worker 基础 URL (默认使用内置生产域名)
    * @param {string} [options.pkg] - 覆盖默认应用包名或标识 (例如 "ext.lockbox")
    * @param {string} [options.ver] - 覆盖版本号
-   * @param {Object} [options.extra] - 附加业务参数 (如 { syncStatus: "offline", vaultId: 102 })
+   * @param {Array<string>|string} [options.categories] - App 自定义问题分类列表 (如 ["插件崩溃", "自动填充失效", "功能建议", "其他"])
+   * @param {string} [options.title] - App 自定义工单主标题 (如 "LockBox 插件支持中心")
+   * @param {string} [options.desc] - App 自定义工单副标题描述
+   * @param {string} [options.placeholder] - App 自定义输入框占位符
+   * @param {string} [options.lang] - 覆盖语言 (默认自动探测客户端设备系统语言)
+   * @param {Object} [options.extra] - 附加私有业务参数 (如 { syncStatus: "offline", vaultId: 102 })
    */
-  async function buildUrl({ baseUrl = DEFAULT_BASE_URL, pkg, ver, extra } = {}) {
+  async function buildUrl({
+    baseUrl = DEFAULT_BASE_URL,
+    pkg,
+    ver,
+    categories,
+    title,
+    desc,
+    placeholder,
+    lang,
+    extra
+  } = {}) {
     const env = await detectEnvironment(pkg);
     const finalPkg = pkg || env.pkg;
     const finalVer = ver || env.ver;
+    const finalLang = (lang && typeof lang === 'string') ? lang.toLowerCase() : env.lang;
 
     const url = new URL(baseUrl);
     url.searchParams.set('pkg', finalPkg);
     url.searchParams.set('ver', finalVer);
     url.searchParams.set('os', env.os);
-    url.searchParams.set('lang', env.lang);
+    url.searchParams.set('lang', finalLang);
+
+    // 注入 App 自定义工单内容
+    if (Array.isArray(categories) && categories.length > 0) {
+      url.searchParams.set('categories', categories.join(','));
+    } else if (typeof categories === 'string' && categories.trim()) {
+      url.searchParams.set('categories', categories.trim());
+    }
+
+    if (title && typeof title === 'string' && title.trim()) {
+      url.searchParams.set('title', title.trim());
+    }
+    if (desc && typeof desc === 'string' && desc.trim()) {
+      url.searchParams.set('desc', desc.trim());
+    }
+    if (placeholder && typeof placeholder === 'string' && placeholder.trim()) {
+      url.searchParams.set('placeholder', placeholder.trim());
+    }
 
     if (extra && typeof extra === 'object') {
       url.searchParams.set('extra', JSON.stringify(extra));

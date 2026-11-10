@@ -146,25 +146,39 @@ npm run deploy
 
 ## 📱 客户端接入代码示例
 
-所有客户端均支持自动采集包名、版本、系统、语言，并支持附带 `extra` 自定义 JSON：
+所有客户端均**默认自动提取并上传设备当前真实系统语言**（无感支持全球 8 种主流语言自适应）与软硬件环境，并**支持 App 按产品需求自由深度自定义工单内容**（自定义分类列表、自定义主副标题、自定义占位符）：
 
 ### 1. Android (Kotlin)
 复制 [clients/FeedbackHub.kt](file:///Volumes/T7%20Shield/MyDocument/customer/clients/FeedbackHub.kt) 至工程中：
 ```kotlin
+// 极简调用（自动上传设备语言与系统信息）：
+FeedbackHub.open(this)
+
+// 深度自定义工单内容调用（根据自身 App 特点配置分类与标题）：
 FeedbackHub.open(
-    context = context,
-    baseUrl = "https://feedback.yourdomain.com",
-    extraData = mapOf("vip_tier" to "pro", "server_node" to "us-west-01")
+    context = this,
+    title = "FitFlow 健身反馈中心",
+    desc = "动作库、周期记录与训练数据同步反馈",
+    categories = listOf("数据同步失败", "动作库建议", "界面优化", "其他"),
+    placeholder = "请描述您在做哪个动作或同步哪个设备时遇到的问题...",
+    extraData = mapOf("plan" to "pro", "userId" to "usr_1002")
 )
 ```
 
 ### 2. iOS (Swift)
 复制 [clients/FeedbackHub.swift](file:///Volumes/T7%20Shield/MyDocument/customer/clients/FeedbackHub.swift) 至工程中：
 ```swift
+// 极简调用（SFSafariViewController 页面内弹出）：
+FeedbackHub.present(from: self)
+
+// 深度自定义工单内容调用：
 FeedbackHub.present(
     from: self,
-    baseUrl: "https://feedback.yourdomain.com",
-    extraData: ["isVip": true, "vaultCount": 42]
+    categories: ["视频黑屏", "滤镜卡顿", "字幕错位", "其他建议"],
+    title: "剪辑大师用户反馈",
+    desc: "遇到转码或播放异常请直接提交，工程师全力排查",
+    placeholder: "请提供您的视频分辨率与复现步骤...",
+    extraData: ["plan": "pro", "userId": "usr_998"]
 )
 ```
 
@@ -172,9 +186,10 @@ FeedbackHub.present(
 复制 [clients/feedback_hub.dart](file:///Volumes/T7%20Shield/MyDocument/customer/clients/feedback_hub.dart) 至工程中：
 ```dart
 await FeedbackHub.open(
-  baseUrl: 'https://feedback.yourdomain.com',
-  packageName: 'com.turboLink.fast',
-  appVersion: '2.1.0',
+  packageName: 'com.yourcompany.app',
+  title: '视频剪辑反馈',
+  categories: ['导出黑屏', '滤镜失效', '功能建议', '其他'],
+  placeholder: '请提供视频分辨率与操作复现步骤...',
   extraData: {'plan': 'premium'},
 );
 ```
@@ -183,8 +198,10 @@ await FeedbackHub.open(
 复制 [clients/feedback-hub.js](file:///Volumes/T7%20Shield/MyDocument/customer/clients/feedback-hub.js) 至扩展工程中：
 ```javascript
 FeedbackHub.open({
-  baseUrl: "https://feedback.yourdomain.com",
   pkg: "ext.lockbox",
+  title: "LockBox 插件支持中心",
+  categories: ["插件崩溃", "自动填充失效", "功能建议", "其他"],
+  placeholder: "请描述目标网站网址与失效现象...",
   extra: { autoFillSuccess: false, targetDomain: "example.com" }
 });
 ```

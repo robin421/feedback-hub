@@ -121,9 +121,24 @@ function handleGetHome(url, env) {
   const os = url.searchParams.get("os") || "";
   const lang = (url.searchParams.get("lang") || "en").toLowerCase();
   const extra = url.searchParams.get("extra") || "";
+  const title = url.searchParams.get("title") || "";
+  const desc = url.searchParams.get("desc") || "";
+  const categories = url.searchParams.get("categories") || "";
+  const placeholder = url.searchParams.get("placeholder") || "";
   const sheetViewUrl = (env && (env.GOOGLE_SHEET_VIEW_URL || env.TENCENT_DOCS_VIEW_URL)) || DEFAULT_SHEET_CONFIG.viewUrl;
 
-  const html = renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl });
+  const html = renderHTML({
+    pkg,
+    ver,
+    os,
+    lang,
+    extra,
+    sheetViewUrl,
+    customTitle: title,
+    customDesc: desc,
+    customCategories: categories,
+    customPlaceholder: placeholder
+  });
 
   return new Response(html, {
     status: 200,
@@ -677,8 +692,16 @@ ${formattedExtra}
 /**
  * 前端 HTML 页面模板渲染（移动端 + 桌面端自适应 - 2026 Ultimate Edition）
  * 彻底消除移动端多余 Header，引入 Apple 原生拖拽手柄、分类精巧微图标、输入呼吸环与字数进度条、数字工单凭据 (Ticket Receipt Pass)
+ * 支持各个 App 自定义工单内容（标题、描述、分类列表、占位符），并无缝支持客户端默认上传设备语言
  */
-function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
+function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "", customDesc = "", customCategories = "", customPlaceholder = "" }) {
+  const serverCustomConfig = {
+    title: customTitle || "",
+    desc: customDesc || "",
+    categories: customCategories || "",
+    placeholder: customPlaceholder || ""
+  };
+
   return `<!DOCTYPE html>
 <html lang="${lang === "zh" ? "zh-CN" : "en"}">
 <head>
@@ -1060,6 +1083,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
   </main>
 
   <script>
+    const SERVER_CUSTOM_CONFIG = ${JSON.stringify(serverCustomConfig)};
     const APP_CONFIG = {
       "default": {
         name: {
@@ -1469,6 +1493,12 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
     let clientLang = normalizeLang(rawParamLang);
     const clientExtra = queryParams.get("extra") || "";
 
+    // App 自定义工单内容注入与优先级调度 (优先使用 App 传入的自定义配置)
+    const customTitle = queryParams.get("title") || SERVER_CUSTOM_CONFIG.title || "";
+    const customDesc = queryParams.get("desc") || SERVER_CUSTOM_CONFIG.desc || "";
+    const customCategoriesParam = queryParams.get("categories") || SERVER_CUSTOM_CONFIG.categories || "";
+    const customPlaceholder = queryParams.get("placeholder") || SERVER_CUSTOM_CONFIG.placeholder || "";
+
     let selectedCategory = "";
     let rateLimitTimer = null;
     let lastTicketPayload = null;
@@ -1509,15 +1539,23 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       const config = APP_CONFIG[clientPkg] || APP_CONFIG["default"];
       const t = getI18n(clientLang);
 
-      document.getElementById("app-title").textContent = (config.name && config.name[clientLang]) || (config.name && config.name["en"]) || config.name["zh"];
-      document.getElementById("app-desc").textContent = (config.desc && config.desc[clientLang]) || (config.desc && config.desc["en"]) || config.desc["zh"];
+      // 1. App 自定义标题：优先使用 App 传入的自定义标题，否则降级回退到产品配置多语言
+      const displayTitle = customTitle.trim() || ((config.name && config.name[clientLang]) || (config.name && config.name["en"]) || config.name["zh"]);
+      document.getElementById("app-title").textContent = displayTitle;
+
+      // 2. App 自定义副标题：优先使用 App 传入的自定义副标题，否则降级回退到产品配置多语言
+      const displayDesc = customDesc.trim() || ((config.desc && config.desc[clientLang]) || (config.desc && config.desc["en"]) || config.desc["zh"]);
+      document.getElementById("app-desc").textContent = displayDesc;
+
       document.getElementById("badge-pkg").textContent = clientPkg;
       document.getElementById("label-live-status").textContent = t.liveStatusText;
 
       document.getElementById("label-category").innerHTML = t.categoryLabel + ' <span class="text-rose-500">*</span>';
       document.getElementById("category-hint").textContent = t.categoryHint;
       document.getElementById("label-content").innerHTML = t.contentLabel + ' <span class="text-rose-500">*</span>';
-      document.getElementById("content").placeholder = t.contentPlaceholder;
+
+      // 3. App 自定义输入框提示：优先使用自定义 placeholder，否则使用当前语言默认占位符
+      document.getElementById("content").placeholder = customPlaceholder.trim() || t.contentPlaceholder;
       document.getElementById("content-hint").textContent = t.contentHint;
       document.getElementById("label-clear").textContent = t.clearText;
       document.getElementById("label-email").textContent = t.emailLabel;
@@ -1543,7 +1581,30 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl }) {
       const labelContent = document.getElementById("ticket-label-content");
       if (labelContent) labelContent.textContent = t.contentMetaLabel + ":";
 
-      const categories = (config.categories && config.categories[clientLang]) || (config.categories && config.categories["en"]) || config.categories["zh"];
+      // 4. App 自定义分类列表：优先解析 App 传入的自定义分类（支持 JSON 数组、逗号分隔、竖线分隔）
+      let categories = [];
+      if (customCategoriesParam && customCategoriesParam.trim()) {
+        const trimmed = customCategoriesParam.trim();
+        try {
+          if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              categories = parsed.map(c => String(c).trim()).filter(Boolean);
+            }
+          }
+        } catch (e) {}
+
+        if (categories.length === 0) {
+          const separator = trimmed.includes("|") ? "|" : ",";
+          categories = trimmed.split(separator).map(c => c.trim()).filter(Boolean);
+        }
+      }
+
+      // 若未传入自定义分类，平滑降级至产品预置多语言分类
+      if (categories.length === 0) {
+        categories = (config.categories && config.categories[clientLang]) || (config.categories && config.categories["en"]) || config.categories["zh"];
+      }
+
       const categoryContainer = document.getElementById("category-group");
       categoryContainer.innerHTML = "";
 
