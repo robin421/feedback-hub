@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
 /**
  * FeedbackHub - Flutter 跨平台接入客户端
  * 
@@ -9,10 +13,12 @@ import 'dart:io';
  * 2. 默认自动组装底层操作系统与硬件环境参数
  * 3. 支持 App 自主按产品深度自定义工单内容：自定义分类列表 (categories)、自定义标题 (title)、自定义描述 (desc)、自定义输入占位 (placeholder)
  * 4. 支持附加业务私有字典 (extraData)
- * 
- * 依赖建议（在 pubspec.yaml 中添加）：
+ * 5. 在 App 内以原生页面 (WebView) 打开，不跳出 App；支持提交成功 / 关闭回调
+ *
+ * 依赖（在 pubspec.yaml 中添加）：
  * dependencies:
- *   url_launcher: ^6.3.0
+ *   webview_flutter: ^4.10.0
+ *   url_launcher: ^6.3.0   # 仅用于在系统中打开页面内的外部链接 / 降级打开
  */
 class FeedbackHub {
   /// 默认 Cloudflare Workers 生产环境线上域名
@@ -20,7 +26,7 @@ class FeedbackHub {
 
   /// 自动探测设备当前真实系统语言并规范化为核心 8 语种代码
   static String detectDeviceLanguage() {
-    final locale = Platform.localeName.toLowerCase();
+    final locale = Platform.localeName.toLowerCase().replaceAll('_', '-'); // 如 zh_Hant_TW -> zh-hant-tw
     if (locale.startsWith('zh-tw') || locale.startsWith('zh-hk') || locale.startsWith('zh-mo') || locale.startsWith('zh-hant')) {
       return 'zh-tw';
     } else if (locale.startsWith('zh')) {
@@ -94,18 +100,21 @@ class FeedbackHub {
     return baseUri.replace(queryParameters: queryParams);
   }
 
-  /// 调起反馈中心（使用 url_launcher）
+  /// 在 App 内打开反馈中心（原生 WebView 页面，不跳出 App）
   ///
   /// 示例用法：
   /// ```dart
-  /// await FeedbackHub.open(
+  /// final ticketId = await FeedbackHub.open(
+  ///   context,
   ///   packageName: 'com.yourcompany.app',
   ///   title: '我的应用用户反馈',
   ///   categories: ['功能卡顿', '闪退崩溃', '产品建议', '其他'],
   ///   extraData: {'plan': 'premium'},
   /// );
+  /// // ticketId 为 null 表示用户未提交就关闭了页面
   /// ```
-  static Future<bool> open({
+  static Future<String?> open(
+    BuildContext context, {
     required String packageName,
     String appVersion = '1.0.0',
     List<String>? categories,
@@ -115,9 +124,10 @@ class FeedbackHub {
     Map<String, dynamic>? extraData,
     String? lang,
     String baseUrl = defaultBaseUrl,
-    Function(Uri url)? customLauncher,
-  }) async {
-    final targetUri = buildUri(
+    void Function(String ticketId)? onSubmitted,
+  }) {
+    final finalLang = (lang != null && lang.trim().isNotEmpty) ? lang.trim().toLowerCase() : detectDeviceLanguage();
+    final uri = buildUri(
       baseUrl: baseUrl,
       packageName: packageName,
       appVersion: appVersion,
@@ -126,25 +136,148 @@ class FeedbackHub {
       desc: desc,
       placeholder: placeholder,
       extraData: extraData,
-      lang: lang,
+      lang: finalLang,
     );
+    final embedUri = uri.replace(queryParameters: {...uri.queryParameters, 'embed': '1'});
 
-    if (customLauncher != null) {
-      customLauncher(targetUri);
-      return true;
+    return Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => FeedbackHubPage(
+          url: embedUri,
+          title: toolbarTitle(finalLang),
+          onSubmitted: onSubmitted,
+        ),
+      ),
+    );
+  }
+
+  /// 备用方案：使用系统浏览器打开（会跳出 App）
+  static Future<bool> openInBrowser(Uri uri) {
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  static String toolbarTitle(String lang) {
+    switch (lang) {
+      case 'zh':
+        return '意见反馈';
+      case 'zh-tw':
+        return '意見回饋';
+      case 'ja':
+        return 'フィードバック';
+      case 'ko':
+        return '피드백';
+      case 'es':
+        return 'Comentarios';
+      case 'fr':
+        return 'Commentaires';
+      default:
+        return 'Feedback';
     }
+  }
+}
 
-    // 若工程中已引入 url_launcher，可直接解除以下注释：
-    /*
-    import 'package:url_launcher/url_launcher.dart';
-    if (await canLaunchUrl(targetUri)) {
-      return await launchUrl(
-        targetUri,
-        mode: LaunchMode.inAppBrowserView, // 支持应用内无缝弹出
-      );
+/// 内置反馈页面：AppBar + 进度条 + WebView
+///
+/// 关闭页面时通过 Navigator.pop 返回已提交的工单号（未提交则为 null）。
+class FeedbackHubPage extends StatefulWidget {
+  const FeedbackHubPage({
+    super.key,
+    required this.url,
+    required this.title,
+    this.onSubmitted,
+  });
+
+  final Uri url;
+  final String title;
+  final void Function(String ticketId)? onSubmitted;
+
+  @override
+  State<FeedbackHubPage> createState() => _FeedbackHubPageState();
+}
+
+class _FeedbackHubPageState extends State<FeedbackHubPage> {
+  late final WebViewController _controller;
+  int _progress = 0;
+  String? _ticketId;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.transparent)
+      ..addJavaScriptChannel('FeedbackHubNative', onMessageReceived: _onMessage)
+      ..setNavigationDelegate(NavigationDelegate(
+        onProgress: (p) {
+          if (mounted) setState(() => _progress = p);
+        },
+        // 只允许在反馈服务域名内跳转，其它链接 (邮件、外链等) 交给系统处理
+        onNavigationRequest: (request) {
+          final target = Uri.tryParse(request.url);
+          if (target == null || target.host == widget.url.host || target.scheme == 'about') {
+            return NavigationDecision.navigate;
+          }
+          launchUrl(target, mode: LaunchMode.externalApplication);
+          return NavigationDecision.prevent;
+        },
+      ))
+      ..loadRequest(widget.url);
+  }
+
+  void _onMessage(JavaScriptMessage message) {
+    Map<String, dynamic> json;
+    try {
+      json = jsonDecode(message.message) as Map<String, dynamic>;
+    } catch (_) {
+      return;
     }
-    */
+    switch (json['type']) {
+      case 'submitted':
+        final payload = json['payload'];
+        _ticketId = payload is Map ? (payload['ticketId']?.toString() ?? '') : '';
+        widget.onSubmitted?.call(_ticketId!);
+        break;
+      case 'close':
+        if (mounted) Navigator.of(context).pop(_ticketId);
+        break;
+    }
+  }
 
-    return false;
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0B0F19) : const Color(0xFFF8FAFC);
+    return PopScope<String>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) Navigator.of(context).pop(_ticketId);
+      },
+      child: Scaffold(
+        backgroundColor: bg,
+        appBar: AppBar(
+          backgroundColor: bg,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          automaticallyImplyLeading: false,
+          title: Text(widget.title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+              onPressed: () => Navigator.of(context).pop(_ticketId),
+            ),
+          ],
+          bottom: _progress < 100
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(2),
+                  child: LinearProgressIndicator(value: _progress / 100, minHeight: 2),
+                )
+              : null,
+        ),
+        body: SafeArea(top: false, child: WebViewWidget(controller: _controller)),
+      ),
+    );
   }
 }

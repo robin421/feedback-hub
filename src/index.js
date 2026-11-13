@@ -703,7 +703,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
   };
 
   return `<!DOCTYPE html>
-<html lang="${lang === "zh" ? "zh-CN" : "en"}">
+<html lang="${({ zh: "zh-CN", "zh-tw": "zh-TW", "zh-hk": "zh-TW", en: "en", ja: "ja", ko: "ko", es: "es", de: "de", fr: "fr" })[lang] || "en"}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -775,7 +775,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
 <body class="bg-slate-50 text-slate-800 dark:bg-[#0b0f19] dark:text-slate-100 min-h-screen flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white transition-colors duration-200">
 
   <!-- 移动端 Webview 沉浸式顶部手柄 (Sheet Handle: 告别生硬 Header 假顶栏) -->
-  <div class="sm:hidden flex justify-center pt-2.5 pb-1">
+  <div id="sheet-handle" class="sm:hidden flex justify-center pt-2.5 pb-1">
     <div class="w-10 h-1 rounded-full bg-slate-300/80 dark:bg-slate-700/80"></div>
   </div>
 
@@ -783,7 +783,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
   <main class="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-8 lg:py-10 flex-1 flex flex-col justify-center">
     
     <!-- 反馈主卡片 -->
-    <div id="form-card" class="bg-white/95 dark:bg-[#111827]/90 rounded-3xl shadow-[0_16px_50px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl p-5 sm:p-8 lg:p-10 transition-all">
+    <div id="form-card" class="bg-white/95 dark:bg-[#111827]/90 rounded-3xl shadow-[0_16px_50px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl p-4 min-[380px]:p-5 sm:p-8 lg:p-10 transition-all">
       
       <div class="lg:grid lg:grid-cols-12 lg:gap-10 items-stretch">
         
@@ -872,7 +872,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
                 </label>
                 <span class="text-[11px] text-slate-400 dark:text-slate-500" id="category-hint">请选择最符合的一项</span>
               </div>
-              <div id="category-group" class="grid grid-cols-2 gap-2.5">
+              <div id="category-group" class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
                 <!-- 动态生成带有精美微图标的分类按钮 -->
               </div>
               <p id="category-error" class="hidden text-xs text-rose-500 mt-1.5 flex items-center gap-1"></p>
@@ -1076,7 +1076,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         <!-- 自动渲染环境参数 -->
       </div>
       <div class="mt-1.5 text-[11px] text-slate-400/70 dark:text-slate-600">
-        Feedback Hub · 独立产品支持中心 · <a href="/sheet" class="hover:underline hover:text-slate-600 dark:hover:text-slate-400 transition-colors">管理视图</a>
+        Feedback Hub · 独立产品支持中心<span id="admin-link"> · <a href="/sheet" class="hover:underline hover:text-slate-600 dark:hover:text-slate-400 transition-colors">管理视图</a></span>
       </div>
     </footer>
 
@@ -1201,6 +1201,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         successTitle: "工单已归档入库",
         successDesc: "您的反馈已自动直连多维表格看板并生成唯一存证凭据。",
         btnBack: "返回 / 再次提交",
+        btnDone: "完成",
         btnCopySummary: "复制凭证摘要",
         copied: "已复制",
         copyId: "复制单号",
@@ -1234,6 +1235,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         successTitle: "工單已歸檔入庫",
         successDesc: "您的反饋已自動直連多維表格看板並生成唯一存證憑據。",
         btnBack: "返回 / 再次提交",
+        btnDone: "完成",
         btnCopySummary: "複製憑證摘要",
         copied: "已複製",
         copyId: "複製單號",
@@ -1267,6 +1269,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         successTitle: "Ticket Recorded",
         successDesc: "Your feedback has been routed to our spreadsheet backlog with a permanent receipt.",
         btnBack: "Submit Another",
+        btnDone: "Done",
         btnCopySummary: "Copy Summary",
         copied: "Copied",
         copyId: "Copy ID",
@@ -1300,6 +1303,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         successTitle: "チケットを登録しました",
         successDesc: "フィードバックはスプレッドシートに記録され、専用の証明控えが発行されました。",
         btnBack: "別のフィードバックを送信",
+        btnDone: "完了",
         btnCopySummary: "控えをコピー",
         copied: "コピー完了",
         copyId: "IDをコピー",
@@ -1333,6 +1337,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         successTitle: "티켓이 등록되었습니다",
         successDesc: "피드백이 스프레드시트에 정상 등록되었으며 고유 접수증이 발급되었습니다.",
         btnBack: "추가 피드백 제출",
+        btnDone: "완료",
         btnCopySummary: "접수 요약 복사",
         copied: "복사됨",
         copyId: "ID 복사",
@@ -1366,6 +1371,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         successTitle: "Ticket registrado",
         successDesc: "Sus comentarios se han sincronizado con la hoja de cálculo con un comprobante permanente.",
         btnBack: "Enviar otro ticket",
+        btnDone: "Listo",
         btnCopySummary: "Copiar resumen",
         copied: "Copiado",
         copyId: "Copiar ID",
@@ -1399,6 +1405,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         successTitle: "Ticket erfasst",
         successDesc: "Ihr Feedback wurde in unserer Tabelle erfasst und ein Beleg erstellt.",
         btnBack: "Weiteres Feedback",
+        btnDone: "Fertig",
         btnCopySummary: "Zusammenfassung kopieren",
         copied: "Kopiert",
         copyId: "ID kopieren",
@@ -1432,6 +1439,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         successTitle: "Ticket enregistré",
         successDesc: "Votre retour a été enregistré dans notre tableau avec un reçu permanent.",
         btnBack: "Envoyer un autre",
+        btnDone: "Terminé",
         btnCopySummary: "Copier le résumé",
         copied: "Copié",
         copyId: "Copier l'ID",
@@ -1499,6 +1507,26 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
     const customCategoriesParam = queryParams.get("categories") || SERVER_CUSTOM_CONFIG.categories || "";
     const customPlaceholder = queryParams.get("placeholder") || SERVER_CUSTOM_CONFIG.placeholder || "";
 
+    // App 内嵌模式 (SDK 以 WebView 打开时附带 embed=1)：隐藏网页专属元素，并通过 JS Bridge 与原生通信
+    const isEmbedded = queryParams.get("embed") === "1";
+
+    function notifyNative(type, payload) {
+      const message = JSON.stringify({ type, payload: payload || {} });
+      try {
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.feedbackHub) {
+          window.webkit.messageHandlers.feedbackHub.postMessage(message); // iOS WKWebView
+        } else if (window.FeedbackHubNative && window.FeedbackHubNative.postMessage) {
+          window.FeedbackHubNative.postMessage(message); // Android WebView / Flutter webview_flutter
+        } else if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ source: "feedback-hub", type, payload: payload || {} }, "*"); // Web iframe
+        }
+      } catch (e) {}
+    }
+
+    function closeEmbedded() {
+      notifyNative("close");
+    }
+
     let selectedCategory = "";
     let rateLimitTimer = null;
     let lastTicketPayload = null;
@@ -1506,6 +1534,11 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
     document.addEventListener("DOMContentLoaded", () => {
       const selector = document.getElementById("lang-selector");
       if (selector) selector.value = clientLang;
+      if (isEmbedded) {
+        document.getElementById("sheet-handle").classList.add("hidden");
+        document.getElementById("admin-link").classList.add("hidden");
+        document.getElementById("btn-back").onclick = closeEmbedded;
+      }
       initUI();
       checkRateLimit();
       initKeyboardShortcuts();
@@ -1513,6 +1546,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
 
     function switchLanguage(targetLang) {
       clientLang = normalizeLang(targetLang);
+      document.documentElement.lang = clientLang === "zh" ? "zh-CN" : (clientLang === "zh-tw" ? "zh-TW" : clientLang);
       const selector = document.getElementById("lang-selector");
       if (selector) selector.value = clientLang;
       initUI();
@@ -1564,7 +1598,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
       document.getElementById("submit-text").textContent = t.submitText;
       document.getElementById("success-title").textContent = t.successTitle;
       document.getElementById("success-desc").textContent = t.successDesc;
-      document.getElementById("btn-back").textContent = t.btnBack;
+      document.getElementById("btn-back").textContent = isEmbedded ? t.btnDone : t.btnBack;
       document.getElementById("btn-copy-summary").textContent = t.btnCopySummary;
 
       // 动态更新凭据卡片上的多语言标签
@@ -1611,14 +1645,14 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
       categories.forEach((catName, index) => {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "category-btn group relative flex items-center gap-2.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 text-left transition-all duration-150 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 active:scale-[0.98]";
-        
+        btn.className = "category-btn group relative min-w-0 flex items-center gap-2.5 px-3 py-2.5 sm:p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 text-left transition-all duration-150 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 active:scale-[0.98]";
+
         const iconSvg = getCategoryIconSvg(catName);
         btn.innerHTML = \`
           <div class="category-icon-box w-7 h-7 rounded-lg flex items-center justify-center bg-white dark:bg-slate-800 shadow-2xs shrink-0 transition-transform group-hover:scale-105">
             \${iconSvg}
           </div>
-          <span class="category-name text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate flex-1">\${catName}</span>
+          <span class="category-name min-w-0 flex-1 text-sm font-medium leading-snug text-slate-700 dark:text-slate-300 break-words hyphens-auto">\${catName}</span>
           <div class="category-check hidden w-4 h-4 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
             <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -1807,6 +1841,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
 
     function renderSuccessTicket({ ticketId, category, email, content, time }) {
       lastTicketPayload = { ticketId, category, email, content, time, pkg: clientPkg };
+      notifyNative("submitted", { ticketId, category });
       document.getElementById("form-card").classList.add("hidden");
       const successCard = document.getElementById("success-card");
       successCard.classList.remove("hidden");
@@ -1819,10 +1854,30 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
       document.getElementById("ticket-content-display").textContent = content;
     }
 
+    // 兼容 App 内 WebView：navigator.clipboard 不可用或被拒时回退到 execCommand
+    function copyText(text) {
+      const fallback = () => new Promise((resolve, reject) => {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        ok ? resolve() : reject(new Error("copy failed"));
+      });
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(fallback);
+      }
+      return fallback();
+    }
+
     function copyTicketId() {
       const t = getI18n(clientLang);
       const idText = document.getElementById("ticket-id-display").textContent;
-      navigator.clipboard.writeText(idText).then(() => {
+      copyText(idText).then(() => {
         const copyTextEl = document.getElementById("copy-text");
         const copyIconEl = document.getElementById("copy-icon");
 
@@ -1846,7 +1901,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
       const t = getI18n(clientLang);
       if (!lastTicketPayload) return;
       const summaryText = "[" + t.successTitle + "]\\n" + t.ticketIdLabel + ": " + lastTicketPayload.ticketId + "\\n" + t.pkgLabel + ": " + lastTicketPayload.pkg + "\\n" + t.catLabel + ": " + lastTicketPayload.category + "\\n" + t.emailMetaLabel + ": " + lastTicketPayload.email + "\\n" + t.timeLabel + ": " + lastTicketPayload.time + "\\n" + t.contentMetaLabel + ":\\n" + lastTicketPayload.content;
-      navigator.clipboard.writeText(summaryText).then(() => {
+      copyText(summaryText).then(() => {
         const summaryBtn = document.getElementById("btn-copy-summary");
         const originText = summaryBtn.textContent;
         summaryBtn.textContent = "✓ " + t.copied;

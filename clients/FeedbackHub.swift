@@ -1,5 +1,5 @@
 import UIKit
-import SafariServices
+import WebKit
 
 /**
  * FeedbackHub - iOS 极简接入客户端
@@ -8,7 +8,8 @@ import SafariServices
  * 1. 默认自动采集并上传当前设备真实系统语言 (zh-CN, zh-TW, en, ja, ko, es, de, fr 等)
  * 2. 默认自动获取 Bundle ID、App 版本与构建号、iOS 系统机型
  * 3. 支持 App 自主按产品深度自定义工单内容：自定义分类列表 (categories)、自定义标题 (title)、自定义描述 (desc)、自定义输入占位 (placeholder)
- * 4. 支持使用 SFSafariViewController 在 App 内无缝弹出（深色模式自适应，支持手势下拉关闭）
+ * 4. 在 App 内以原生页面 (WKWebView) 弹出，不跳出 App、无 Safari 地址栏；深色模式自适应，支持下拉关闭
+ * 5. 支持提交成功 / 关闭回调
  */
 public final class FeedbackHub {
 
@@ -104,35 +105,19 @@ public final class FeedbackHub {
         }
 
         components.queryItems = queryItems
+        // URLQueryItem 不会转义 "+"，服务端会将其解析为空格，这里手动转义
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
         return components.url
     }
 
     /**
-     * 向后兼容重载：仅传 extraData
-     */
-    public static func buildUrl(
-        extraData: [String: Any]? = nil,
-        baseUrl: String = defaultBaseUrl
-    ) -> URL? {
-        return buildUrl(
-            categories: nil,
-            title: nil,
-            desc: nil,
-            placeholder: nil,
-            extraData: extraData,
-            lang: nil,
-            baseUrl: baseUrl
-        )
-    }
-
-    /**
-     * 在指定 UIViewController 内弹出 SFSafariViewController 打开反馈页
-     * 
+     * 在 App 内弹出反馈页（原生 WKWebView 页面，不跳出 App）
+     *
      * 极简示例（一行代码）：
      * ```swift
      * FeedbackHub.present(from: self)
      * ```
-     * 
+     *
      * App 自定义工单内容示例：
      * ```swift
      * FeedbackHub.present(
@@ -141,7 +126,8 @@ public final class FeedbackHub {
      *     title: "剪辑大师用户反馈",
      *     desc: "遇到转码或播放异常请直接提交，工程师全力排查",
      *     placeholder: "请提供您的视频分辨率与复现步骤...",
-     *     extraData: ["plan": "pro", "userId": "usr_998"]
+     *     extraData: ["plan": "pro", "userId": "usr_998"],
+     *     onSubmitted: { ticketId in print("submitted \(ticketId)") }
      * )
      * ```
      */
@@ -153,49 +139,37 @@ public final class FeedbackHub {
         placeholder: String? = nil,
         extraData: [String: Any]? = nil,
         lang: String? = nil,
-        baseUrl: String = defaultBaseUrl
+        baseUrl: String = defaultBaseUrl,
+        onSubmitted: ((String) -> Void)? = nil,
+        onClose: (() -> Void)? = nil
     ) {
+        let finalLang = (lang?.isEmpty == false) ? lang!.lowercased() : detectDeviceLanguage()
         guard let url = buildUrl(
             categories: categories,
             title: title,
             desc: desc,
             placeholder: placeholder,
             extraData: extraData,
-            lang: lang,
+            lang: finalLang,
             baseUrl: baseUrl
-        ) else {
+        ),
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             print("[FeedbackHub] Error: Invalid URL generated.")
             return
         }
+        components.percentEncodedQuery = (components.percentEncodedQuery ?? "") + "&embed=1"
+        guard let embedUrl = components.url else { return }
 
-        let safariVC = SFSafariViewController(url: url)
-        safariVC.dismissButtonStyle = .close
-        safariVC.modalPresentationStyle = .pageSheet
-        viewController.present(safariVC, animated: true)
+        let feedbackVC = FeedbackWebViewController(url: embedUrl, onSubmitted: onSubmitted, onClose: onClose)
+        feedbackVC.title = toolbarTitle(for: finalLang)
+        let nav = UINavigationController(rootViewController: feedbackVC)
+        nav.modalPresentationStyle = .pageSheet
+        nav.presentationController?.delegate = feedbackVC
+        viewController.present(nav, animated: true)
     }
 
     /**
-     * 向后兼容重载：仅传 extraData
-     */
-    public static func present(
-        from viewController: UIViewController,
-        extraData: [String: Any]? = nil,
-        baseUrl: String = defaultBaseUrl
-    ) {
-        present(
-            from: viewController,
-            categories: nil,
-            title: nil,
-            desc: nil,
-            placeholder: nil,
-            extraData: extraData,
-            lang: nil,
-            baseUrl: baseUrl
-        )
-    }
-
-    /**
-     * 备用方案：直接调用系统默认外部浏览器打开
+     * 备用方案：直接调用系统默认外部浏览器打开（会跳出 App）
      */
     public static func openInBrowser(
         categories: [String]? = nil,
@@ -216,5 +190,147 @@ public final class FeedbackHub {
             baseUrl: baseUrl
         ) else { return }
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+
+    static func toolbarTitle(for lang: String) -> String {
+        switch lang {
+        case "zh": return "意见反馈"
+        case "zh-tw": return "意見回饋"
+        case "ja": return "フィードバック"
+        case "ko": return "피드백"
+        case "es": return "Comentarios"
+        case "fr": return "Commentaires"
+        default: return "Feedback"
+        }
+    }
+}
+
+// MARK: - 内置反馈页面 (WKWebView)
+
+final class FeedbackWebViewController: UIViewController, WKNavigationDelegate, UIAdaptivePresentationControllerDelegate {
+
+    private let url: URL
+    private let onSubmitted: ((String) -> Void)?
+    private let onClose: (() -> Void)?
+    private var webView: WKWebView!
+    private let progressView = UIProgressView(progressViewStyle: .bar)
+    private var progressObservation: NSKeyValueObservation?
+    private var didNotifyClose = false
+
+    init(url: URL, onSubmitted: ((String) -> Void)?, onClose: (() -> Void)?) {
+        self.url = url
+        self.onSubmitted = onSubmitted
+        self.onClose = onClose
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = UIColor { $0.userInterfaceStyle == .dark
+            ? UIColor(red: 0x0B / 255, green: 0x0F / 255, blue: 0x19 / 255, alpha: 1)
+            : UIColor(red: 0xF8 / 255, green: 0xFA / 255, blue: 0xFC / 255, alpha: 1) }
+
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(closeTapped))
+
+        let config = WKWebViewConfiguration()
+        // 使用弱引用代理，避免 WKUserContentController 强持有导致内存泄漏
+        config.userContentController.add(WeakScriptMessageHandler(self), name: "feedbackHub")
+        config.websiteDataStore = .default() // 保留 localStorage (提交频率限制等)
+
+        webView = WKWebView(frame: .zero, configuration: config)
+        webView.navigationDelegate = self
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        webView.scrollView.contentInsetAdjustmentBehavior = .automatic
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(webView)
+
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(progressView)
+
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+
+        progressObservation = webView.observe(\.estimatedProgress, options: [.new]) { [weak self] webView, _ in
+            guard let self = self else { return }
+            self.progressView.progress = Float(webView.estimatedProgress)
+            self.progressView.isHidden = webView.estimatedProgress >= 1
+        }
+
+        webView.load(URLRequest(url: url))
+    }
+
+    deinit {
+        progressObservation?.invalidate()
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "feedbackHub")
+    }
+
+    @objc private func closeTapped() {
+        dismissFeedback()
+    }
+
+    private func dismissFeedback() {
+        dismiss(animated: true) { [weak self] in self?.notifyClose() }
+    }
+
+    private func notifyClose() {
+        guard !didNotifyClose else { return }
+        didNotifyClose = true
+        onClose?()
+    }
+
+    // 下拉手势关闭 pageSheet
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        notifyClose()
+    }
+
+    // 只允许在反馈服务域名内跳转，其它链接 (邮件、外链等) 交给系统处理
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
+                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        guard let target = navigationAction.request.url else { return decisionHandler(.cancel) }
+        if target.host == url.host || target.scheme == "about" {
+            decisionHandler(.allow)
+        } else {
+            UIApplication.shared.open(target)
+            decisionHandler(.cancel)
+        }
+    }
+
+    fileprivate func handleMessage(_ body: Any) {
+        guard let text = body as? String,
+              let data = text.data(using: .utf8),
+              let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let type = json["type"] as? String else { return }
+        let payload = json["payload"] as? [String: Any] ?? [:]
+        switch type {
+        case "submitted":
+            onSubmitted?(payload["ticketId"] as? String ?? "")
+        case "close":
+            dismissFeedback()
+        default:
+            break
+        }
+    }
+}
+
+private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    private weak var target: FeedbackWebViewController?
+
+    init(_ target: FeedbackWebViewController) {
+        self.target = target
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        target?.handleMessage(message.body)
     }
 }
