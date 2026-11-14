@@ -211,11 +211,11 @@ async function handleFeedbackSubmit(request, env) {
     }
 
     const trimmedContent = (content || "").trim();
-    if (trimmedContent.length < 10 || trimmedContent.length > 1000) {
+    if (!trimmedContent) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Feedback content must be between 10 and 1000 characters."
+          error: "Feedback content cannot be empty."
         }),
         {
           status: 400,
@@ -224,17 +224,8 @@ async function handleFeedbackSubmit(request, env) {
       );
     }
 
-    // 3. Gemini 智能分拣、翻译、严重级判定与垃圾拦截
+    // 3. Gemini 智能分拣、翻译、严重级判定（不过滤任何用户反馈）
     const aiAnalysis = await analyzeWithGemini(trimmedContent, category, pkg, env);
-
-    // 4. 垃圾信息判定
-    if (aiAnalysis.is_spam) {
-      console.info(`[Spam Filtered] Ignored spam feedback for pkg: ${pkg}`);
-      return new Response(JSON.stringify({ success: true, message: "Feedback submitted successfully." }), {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders() }
-      });
-    }
 
     const timeStr = formatCurrentTime();
 
@@ -891,7 +882,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
                     </svg>
                     <span id="label-clear">清空</span>
                   </button>
-                  <span id="char-count" class="text-xs font-mono text-slate-400 dark:text-slate-500 font-medium">0 / 1000</span>
+                  <span id="char-count" class="text-xs font-mono text-slate-400 dark:text-slate-500 font-medium">0</span>
                 </div>
               </div>
 
@@ -901,7 +892,6 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
                   id="content"
                   name="content"
                   rows="5"
-                  maxlength="1000"
                   class="w-full px-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none resize-none leading-relaxed text-sm block"
                   placeholder=""
                 ></textarea>
@@ -1675,28 +1665,16 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
 
       contentEl.oninput = () => {
         const len = contentEl.value.length;
-        charCountEl.textContent = \`\${len} / 1000\`;
-        const percentage = Math.min(100, Math.round((len / 1000) * 100));
-        charProgressEl.style.width = percentage + "%";
+        charCountEl.textContent = \`\${len}\`;
+        charProgressEl.style.width = len > 0 ? "100%" : "0%";
 
         if (len > 0) {
           clearBtn.classList.remove("hidden");
-        } else {
-          clearBtn.classList.add("hidden");
-        }
-
-        if (len >= 10 && len <= 900) {
           charCountEl.className = "text-xs font-mono text-brand-600 dark:text-brand-400 font-medium";
           charProgressEl.className = "h-full bg-brand-500 transition-all duration-150 rounded-full";
           document.getElementById("content-error").classList.add("hidden");
-        } else if (len > 900 && len <= 1000) {
-          charCountEl.className = "text-xs font-mono text-amber-500 font-medium";
-          charProgressEl.className = "h-full bg-amber-500 transition-all duration-150 rounded-full";
-          document.getElementById("content-error").classList.add("hidden");
-        } else if (len > 1000) {
-          charCountEl.className = "text-xs font-mono text-rose-500 font-medium";
-          charProgressEl.className = "h-full bg-rose-500 transition-all duration-150 rounded-full";
         } else {
+          clearBtn.classList.add("hidden");
           charCountEl.className = "text-xs font-mono text-slate-400 dark:text-slate-500 font-medium";
           charProgressEl.className = "h-full bg-slate-300 dark:bg-slate-600 transition-all duration-150 rounded-full";
         }
@@ -1777,7 +1755,7 @@ function renderHTML({ pkg, ver, os, lang, extra, sheetViewUrl, customTitle = "",
         hasError = true;
       }
 
-      if (content.length < 10 || content.length > 1000) {
+      if (!content) {
         const contentErr = document.getElementById("content-error");
         contentErr.textContent = t.contentLengthError;
         contentErr.classList.remove("hidden");
